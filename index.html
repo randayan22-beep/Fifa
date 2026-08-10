@@ -118,6 +118,11 @@ input::placeholder{color:var(--dim2)}
 .tile.guest{border-style:dashed}
 .tile.dragging{opacity:.35}
 .tile-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-50%) scale(1.06);box-shadow:0 14px 34px rgba(0,0,0,.55);opacity:.96;margin:0}
+.tagrow{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tagtoggle{border:1.5px solid var(--line2);background:var(--card2);color:var(--dim);border-radius:12px;padding:9px 13px;font-weight:800;font-size:14px}
+.tagtoggle.on{border-color:#ff9d4a;background:rgba(255,157,74,.14);color:#ffc99a}
+.techauto{margin-inline-start:auto;font-size:12px;font-weight:800;color:var(--dim2);border:1px dashed var(--line2);border-radius:999px;padding:5px 11px}
+.techauto.on{color:#e6d9ff;border-color:var(--tech);border-style:solid;background:rgba(139,91,255,.14)}
 
 .scorewrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:14px}
 .scorebox{background:var(--bg2);border:1px solid var(--line2);border-radius:16px;padding:12px;text-align:center}
@@ -165,6 +170,7 @@ input::placeholder{color:var(--dim2)}
 .cold{background:#16344a;color:#8fd0ff}
 .techbadge{background:rgba(139,91,255,.18);color:#d9c6ff;border:1px solid var(--tech);font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px}
 .friendlybadge{background:rgba(244,192,75,.12);color:var(--draw);border:1px solid #5a4a2a;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px}
+.lrbadge{background:rgba(255,157,74,.14);color:#ffbf8a;border:1px solid #6a4a2a;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px}
 
 .match{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line)}
 .match:last-child{border-bottom:none}
@@ -267,7 +273,7 @@ function isFilled(v){return typeof v==='string'&&v&&!/^PASTE_/.test(v);}
 function syncIsEmbedded(){return isFilled(EMBEDDED_SYNC.url)&&isFilled(EMBEDDED_SYNC.anon);}
 
 let state={players:[],matches:[],deleted:[],control:{open:true,pinHash:null,updatedAt:0},v:3};
-let ui={tab:'play',mode:'2v2',teamA:[],teamB:[],sa:0,sb:0,profileId:null,feedFilter:'all',ranksMode:'all',lastReused:false};
+let ui={tab:'play',teamA:[],teamB:[],sa:0,sb:0,lr:false,profileId:null,feedFilter:'all',ranksMode:'all',lastReused:false};
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function now(){return Date.now();}
@@ -306,7 +312,7 @@ function movMultiplier(gd,ratingDiffWinner){if(gd===0)return 1;return Math.log(M
 function computeStats(players,matches){
   const ids=players.map(p=>p.id);
   const R={},S={};
-  ids.forEach(id=>{R[id]=ELO_START;S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0},'2v2':{w:0,d:0,l:0,g:0}},techW:0,techL:0,closeG:0,closeW:0};});
+  ids.forEach(id=>{R[id]=ELO_START;S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0},'2v2':{w:0,d:0,l:0,g:0}},lr:{w:0,d:0,l:0,g:0},techW:0,techL:0,closeG:0,closeW:0};});
   const chem={};
   const sorted=matches.slice().sort((x,y)=>(x.ts-y.ts)||(x.id<y.id?-1:1));
   for(const m of sorted){
@@ -329,9 +335,10 @@ function computeStats(players,matches){
     const gd=Math.abs(m.sa-m.sb);
     for(const id of team){
       R[id]+=delta;const st=S[id];st.games++;st.gf+=gf;st.ga+=ga;st.mode[m.mode].g++;
-      if(res===1){st.w++;st.mode[m.mode].w++;if(m.tech)st.techW++;}
-      else if(res===0.5){st.d++;st.mode[m.mode].d++;}
-      else {st.l++;st.mode[m.mode].l++;if(m.tech)st.techL++;}
+      if(res===1){st.w++;st.mode[m.mode].w++;if(m.tech)st.techW++;if(m.lr)st.lr.w++;}
+      else if(res===0.5){st.d++;st.mode[m.mode].d++;if(m.lr)st.lr.d++;}
+      else {st.l++;st.mode[m.mode].l++;if(m.tech)st.techL++;if(m.lr)st.lr.l++;}
+      if(m.lr)st.lr.g++;
       if(gd===1){st.closeG++;if(res===1)st.closeW++;}
       st.history.push({t:m.ts,r:R[id]});if(R[id]>st.peak)st.peak=R[id];
       const rc=res===1?'W':res===0.5?'D':'L';st.resultsChrono.push(rc);
@@ -363,11 +370,9 @@ function computeStats(players,matches){
 
 function computeRecords(players,matches,stats){
   const rec=[],ms=matches;if(!ms.length)return rec;
-  let bo=null;ms.forEach(m=>{if(m.tech)return;const gd=Math.abs(m.sa-m.sb);if(!bo||gd>bo.gd)bo={gd,m};});
-  if(bo){const m=bo.m;const win=m.sa>m.sb?m.a:m.b,lo=m.sa>m.sb?m.b:m.a;const ws=Math.max(m.sa,m.sb),ls=Math.min(m.sa,m.sb);rec.push({ic:'💥',t:'המחיקה הגדולה ביותר',v:`${teamNames(win)} ${ws}–${ls} ${teamNames(lo)}`});}
-  let mg=null;ms.forEach(m=>{if(m.tech)return;const x=Math.max(m.sa,m.sb);if(!mg||x>mg.x)mg={x,m};});
+  let mg=null;ms.forEach(m=>{const x=Math.max(m.sa,m.sb);if(!mg||x>mg.x)mg={x,m};});
   if(mg){const m=mg.m;const win=m.sa>=m.sb?m.a:m.b;rec.push({ic:'🎯',t:'הכי הרבה שערים במשחק אחד',v:`${teamNames(win)} — ${mg.x} שערים`});}
-  let hs=null;ms.forEach(m=>{if(m.tech)return;const t=m.sa+m.sb;if(!hs||t>hs.t)hs={t,m};});
+  let hs=null;ms.forEach(m=>{const t=m.sa+m.sb;if(!hs||t>hs.t)hs={t,m};});
   if(hs){const m=hs.m;rec.push({ic:'🔥',t:'המשחק עם הכי הרבה שערים',v:`${teamNames(m.a)} ${m.sa}–${m.sb} ${teamNames(m.b)} (${hs.t})`});}
   let pk=null;stats.ranked.forEach(s=>{if(s.games&&(!pk||s.peak>pk.peak))pk={peak:Math.round(s.peak),id:s.id};});
   if(pk)rec.push({ic:'📈',t:'הדירוג הגבוה בכל הזמנים',v:`${pname(pk.id)} — ${pk.peak}`});
@@ -376,9 +381,11 @@ function computeRecords(players,matches,stats){
   let lu=null;stats.ranked.forEach(s=>{if(s.longestUnb&&(!lu||s.longestUnb>lu.n))lu={n:s.longestUnb,id:s.id};});
   if(lu)rec.push({ic:'🛡️',t:'הרצף הארוך ללא הפסד',v:`${pname(lu.id)} — ${lu.n} משחקים`});
   let tk=null;stats.ranked.forEach(s=>{if(s.techW&&(!tk||s.techW>tk.n))tk={n:s.techW,id:s.id};});
-  if(tk)rec.push({ic:'⚖️',t:'👑 מלך הטכני',v:`${pname(tk.id)} — ${tk.n} נצחונות טכניים`});
+  if(tk)rec.push({ic:'⚖️',t:'👑 מלך הטכני (נצחונות בפער 3+)',v:`${pname(tk.id)} — ${tk.n} טכניים`});
   let tl=null;stats.ranked.forEach(s=>{if(s.techL&&(!tl||s.techL>tl.n))tl={n:s.techL,id:s.id};});
-  if(tl)rec.push({ic:'🏳️',t:'הכי הרבה ספג טכני',v:`${pname(tl.id)} — ${tl.n} פעמים`});
+  if(tl)rec.push({ic:'🏳️',t:'הכי הרבה ספג טכני (הפסד בפער 3+)',v:`${pname(tl.id)} — ${tl.n} פעמים`});
+  let lrr=null;stats.ranked.forEach(s=>{if(s.lr.g>=3){const p=(s.lr.w+s.lr.d*0.5)/s.lr.g*100;if(!lrr||p>lrr.p)lrr={p,id:s.id,g:s.lr.g};}});
+  if(lrr)rec.push({ic:'🎯',t:'אלוף הלונג ריינג׳ (3+ מש׳)',v:`${pname(lrr.id)} — ${Math.round(lrr.p)}% מתוך ${lrr.g}`});
   let ma=null;stats.ranked.forEach(s=>{if(!ma||s.games>ma.g)ma={g:s.games,id:s.id};});
   if(ma&&ma.g)rec.push({ic:'🏃',t:'הכי הרבה משחקים',v:`${pname(ma.id)} — ${ma.g}`});
   const duos=stats.chem.filter(c=>c.g>=3).sort((a,b)=>b.rate-a.rate||b.g-a.g);
@@ -446,27 +453,25 @@ async function doChangePin(){const p=prompt('סיסמת מנהל נוכחית:')
 /* ---------- משחק ---------- */
 function viewPlay(){
   if(state.players.filter(p=>!p.guest).length<2)return onboard();
-  const need=ui.mode==='2v2'?2:1;
-  const filled=ui.teamA.length===need&&ui.teamB.length===need;
+  const nA=ui.teamA.length,nB=ui.teamB.length;
+  const balanced=nA===nB&&(nA===1||nA===2);
   const locked=!entriesOpen();
-  const commonScores=['0-0','1-0','2-0','2-1','3-0','3-1','3-2','1-1','4-0','2-2','4-2','5-1'];
+  const commonScores=['0-0','1-0','2-1','1-1','2-0','2-2','3-0','3-1','3-2','3-3'];
   const cur=ui.sa+'-'+ui.sb;
   const involvesGuest=[...ui.teamA,...ui.teamB].some(id=>isGuest(id));
+  const gd=Math.abs(ui.sa-ui.sb);const isTech=gd>=3;
+  const modeTxt=balanced?(nA===2?'2 נגד 2':'1 נגד 1'):'';
   return `
   <h2 class="section"><span>משחק חדש</span>${lockPill()}</h2>
   <div class="card">
     ${locked?lockBanner():''}
-    <div class="modeswitch">
-      <button class="${ui.mode==='2v2'?'act':''}" onclick="setMode('2v2')">2 נגד 2</button>
-      <button class="${ui.mode==='1v1'?'act':''}" onclick="setMode('1v1')">1 נגד 1</button>
-    </div>
     <div class="arena">
       ${zoneHtml('A')}
       <div class="zonemid"><span>נגד</span><button class="iconbtn" style="width:34px;height:34px;font-size:15px" onclick="swapTeams()">⇄</button></div>
       ${zoneHtml('B')}
     </div>
     ${poolHtml()}
-    <div class="center" style="margin-top:6px">${(ui.teamA.length||ui.teamB.length)?`<button class="linkish" onclick="clearTeams()">נקה בחירה</button>`:''}</div>
+    <div class="center" style="margin-top:6px">${(nA||nB)?`<span class="muted small">${balanced?'זוהה: '+modeTxt:'בחרו מספר שווה בכל צד (1 או 2)'}</span> · <button class="linkish" onclick="clearTeams()">נקה</button>`:'<span class="muted small">הקישו או גררו שחקנים לשני הצדדים — 1 או 2 בכל צד</span>'}</div>
 
     <div class="scorewrap">
       <div class="scorebox a">
@@ -483,20 +488,14 @@ function viewPlay(){
     </div>
     <div class="chips">${commonScores.map(s=>`<button class="chip ${s===cur?'act':''}" onclick="quick('${s}')">${s.replace('-','–')}</button>`).join('')}</div>
 
+    <div class="tagrow">
+      <button class="tagtoggle ${ui.lr?'on':''}" onclick="toggleLR()">🎯 לונג ריינג׳${ui.lr?' ✓':''}</button>
+      <span class="techauto ${isTech?'on':''}">⚖️ טכני${isTech?' · פער '+gd:' (אוטומטי בפער 3+)'}</span>
+    </div>
+
     ${involvesGuest?`<div class="guestnote">🎽 משחק עם אורח — לא נספר בדירוג ובסטטיסטיקות</div>`:''}
 
-    <div style="margin-top:14px" class="grid2">
-      <button class="btn sec" onclick="swapTeams()">⇄ החלף צדדים</button>
-      <button class="btn" ${filled&&!locked?'':'disabled'} onclick="saveMatch()">שמור משחק</button>
-    </div>
-
-    <div class="techbar">
-      <div class="h">⚖️ ניצחון טכני <span class="muted small" style="font-weight:600">(יריב פרש / לא הופיע / התנתק — ${TECH_SCORE}–0)</span></div>
-      <div class="techbtns">
-        <button ${filled&&!locked?'':'disabled'} onclick="saveTech('A')">🏳️ טכני לקבוצה א׳</button>
-        <button ${filled&&!locked?'':'disabled'} onclick="saveTech('B')">🏳️ טכני לקבוצה ב׳</button>
-      </div>
-    </div>
+    <button class="btn" style="margin-top:14px" ${balanced&&!locked?'':'disabled'} onclick="saveMatch()">שמור משחק${isTech?' ⚖️':''}</button>
     ${ui.lastReused?`<div class="small muted center" style="margin-top:10px">ההרכב האחרון נשמר — הקש שם כדי לשנות</div>`:''}
   </div>
   ${recentMini()}`;
@@ -506,19 +505,20 @@ function teamShort(side){const t=side==='A'?ui.teamA:ui.teamB;return t.map(id=>p
 function tileHtml(id,zone){const p=P(id);const cls=zone==='A'?'a':zone==='B'?'b':'';return `<div class="tile ${cls} ${p.guest?'guest':''}" data-id="${id}" onpointerdown="tileDown(event,'${id}')">${avatar(id,'md')}<span class="tn">${escapeHtml(p.name)}</span></div>`;}
 function zoneHtml(side){const team=side==='A'?ui.teamA:ui.teamB;const tiles=team.map(id=>tileHtml(id,side)).join('');return `<div class="zone ${side==='A'?'a':'b'}" data-drop="${side}"><div class="zh"><span>קבוצה ${side==='A'?'א׳':'ב׳'}</span>${teamRatingLabel(team)}</div><div class="ztiles">${tiles||`<div class="zempty">גררו או הקישו</div>`}</div></div>`;}
 function poolHtml(){const used=new Set([...ui.teamA,...ui.teamB]);const pool=state.players.slice().sort((a,b)=>((a.guest?1:0)-(b.guest?1:0))||((STATS.S[b.id]?.rating||1000)-(STATS.S[a.id]?.rating||1000))).filter(p=>!used.has(p.id));return `<div class="poolwrap" data-drop="pool"><div class="poollabel">הקישו על מי ששיחק — או גררו לקבוצה</div><div class="tilegrid">${pool.map(p=>tileHtml(p.id,'pool')).join('')||'<div class="zempty" style="grid-column:1/-1;padding:8px">כל השחקנים נבחרו</div>'}</div></div>`;}
-function tapTile(id){const need=ui.mode==='2v2'?2:1;const iA=ui.teamA.indexOf(id),iB=ui.teamB.indexOf(id);if(iA>-1)ui.teamA.splice(iA,1);else if(iB>-1)ui.teamB.splice(iB,1);else if(ui.teamA.length<need)ui.teamA.push(id);else if(ui.teamB.length<need)ui.teamB.push(id);else{toast('הקבוצות מלאות — הסירו שחקן קודם');return;}ui.lastReused=false;render();}
+function tapTile(id){const iA=ui.teamA.indexOf(id),iB=ui.teamB.indexOf(id);if(iA>-1)ui.teamA.splice(iA,1);else if(iB>-1)ui.teamB.splice(iB,1);else if(ui.teamA.length<=ui.teamB.length&&ui.teamA.length<2)ui.teamA.push(id);else if(ui.teamB.length<2)ui.teamB.push(id);else{toast('שני הצדדים מלאים (עד 2 בכל צד)');return;}ui.lastReused=false;render();}
 function removeFromTeams(id){let i=ui.teamA.indexOf(id);if(i>-1)ui.teamA.splice(i,1);i=ui.teamB.indexOf(id);if(i>-1)ui.teamB.splice(i,1);}
 function dropInZone(id,zone){
-  const need=ui.mode==='2v2'?2:1;
+  const cap=2;
   const from=ui.teamA.includes(id)?'A':ui.teamB.includes(id)?'B':'pool';
   if(zone==='pool'){removeFromTeams(id);ui.lastReused=false;render();return;}
   const arr=zone==='A'?ui.teamA:ui.teamB;
   if(arr.includes(id)){render();return;}
   removeFromTeams(id);
-  if(arr.length>=need){const displaced=arr.pop();if(from==='A'&&ui.teamA.length<need)ui.teamA.push(displaced);else if(from==='B'&&ui.teamB.length<need)ui.teamB.push(displaced);}
+  if(arr.length>=cap){const displaced=arr.pop();if(from==='A'&&ui.teamA.length<cap)ui.teamA.push(displaced);else if(from==='B'&&ui.teamB.length<cap)ui.teamB.push(displaced);}
   arr.push(id);ui.lastReused=false;render();
 }
 function clearTeams(){ui.teamA=[];ui.teamB=[];ui.lastReused=false;render();}
+function toggleLR(){ui.lr=!ui.lr;render();}
 function zoneAt(x,y){const el=document.elementFromPoint(x,y);if(!el)return null;const z=el.closest('[data-drop]');return z?z.dataset.drop:null;}
 function tileDown(ev,id){
   ev.preventDefault();
@@ -558,7 +558,8 @@ function viewRanks(){
   if(!state.players.length)return `<div class="card"><div class="empty"><div class="big">🏆</div>אין שחקנים עדיין.</div></div>`;
   const modeSel=ui.ranksMode;
   let list=STATS.ranked.filter(s=>s.games>0&&!isGuest(s.id));
-  if(modeSel!=='all')list=list.filter(s=>s.mode[modeSel].g>0);
+  if(modeSel==='lr')list=list.filter(s=>s.lr.g>0);
+  else if(modeSel!=='all')list=list.filter(s=>s.mode[modeSel].g>0);
   list=list.slice().sort((a,b)=>b.rating-a.rating);
   const unranked=STATS.ranked.filter(s=>s.games===0&&!isGuest(s.id));
   return `
@@ -567,6 +568,7 @@ function viewRanks(){
     <button class="${modeSel==='all'?'act':''}" onclick="setRanksMode('all')">כללי</button>
     <button class="${modeSel==='2v2'?'act':''}" onclick="setRanksMode('2v2')">2 נגד 2</button>
     <button class="${modeSel==='1v1'?'act':''}" onclick="setRanksMode('1v1')">1 נגד 1</button>
+    <button class="${modeSel==='lr'?'act':''}" onclick="setRanksMode('lr')">🎯 לונג ריינג׳</button>
   </div>
   <div class="card divlist" style="margin-top:10px">${list.length?list.map((s,i)=>lbRow(s,i,modeSel)).join(''):`<div class="empty small">אין עדיין משחקים במצב הזה.</div>`}</div>
   ${unranked.length?`<h2 class="section"><span>עדיין לא מדורגים</span></h2><div class="card">${unranked.map(s=>`<div class="row" style="padding:7px 2px">${avatar(s.id,'sm')}<b style="flex:1">${escapeHtml(pname(s.id))}</b><span class="muted small">0 משחקים</span></div>`).join('')}</div>`:''}
@@ -574,7 +576,7 @@ function viewRanks(){
 }
 function lbRow(s,i,modeSel){
   const rank=i+1;
-  const rec=modeSel==='all'?`${s.w}-${s.d}-${s.l}`:`${s.mode[modeSel].w}-${s.mode[modeSel].d}-${s.mode[modeSel].l}`;
+  const rec=modeSel==='all'?`${s.w}-${s.d}-${s.l}`:modeSel==='lr'?`${s.lr.w}-${s.lr.d}-${s.lr.l}`:`${s.mode[modeSel].w}-${s.mode[modeSel].d}-${s.mode[modeSel].l}`;
   const streak=s.curStreak>=3&&s.curType==='W'?`<span class="streakbadge hot">🔥 ${s.curStreak} נצ׳</span>`:(s.curStreak>=3&&s.curType==='L'?`<span class="streakbadge cold">❄ ${s.curStreak} הפ׳</span>`:'');
   const tech=s.techW?`<span class="techbadge">⚖️ ${s.techW}</span>`:'';
   const dcls=s.lastDelta>0?'up':s.lastDelta<0?'down':'flat';const darr=s.lastDelta>0?'▲':s.lastDelta<0?'▼':'–';
@@ -594,6 +596,7 @@ function viewFeed(){
   if(ui.feedFilter==='2v2')ms=ms.filter(m=>m.mode==='2v2');
   if(ui.feedFilter==='1v1')ms=ms.filter(m=>m.mode==='1v1');
   if(ui.feedFilter==='tech')ms=ms.filter(m=>m.tech);
+  if(ui.feedFilter==='lr')ms=ms.filter(m=>m.lr);
   return `
   <h2 class="section"><span>היסטוריית משחקים (${ms.length})</span></h2>
   <div class="seg">
@@ -601,12 +604,13 @@ function viewFeed(){
     <button class="${ui.feedFilter==='2v2'?'act':''}" onclick="setFeed('2v2')">2 נגד 2</button>
     <button class="${ui.feedFilter==='1v1'?'act':''}" onclick="setFeed('1v1')">1 נגד 1</button>
     <button class="${ui.feedFilter==='tech'?'act':''}" onclick="setFeed('tech')">⚖️ טכניים</button>
+    <button class="${ui.feedFilter==='lr'?'act':''}" onclick="setFeed('lr')">🎯 לונג ריינג׳</button>
   </div>
   <div class="card divlist" style="margin-top:10px">${ms.length?ms.map(m=>matchRow(m,true)).join(''):`<div class="empty"><div class="big">📜</div>אין משחקים.</div>`}</div>`;
 }
 function matchRow(m,withActions){
   const aWin=m.sa>m.sb,bWin=m.sb>m.sa;const when=timeAgo(m.ts);const fr=matchIsFriendly(m);
-  const tags=(m.tech?'<span class="techbadge">⚖️ טכני</span> ':'')+(fr?'<span class="friendlybadge">🎽 ידידותי</span> ':'');
+  const tags=(m.tech?'<span class="techbadge">⚖️ טכני</span> ':'')+(m.lr?'<span class="lrbadge">🎯 לונג ריינג׳</span> ':'')+(fr?'<span class="friendlybadge">🎽 ידידותי</span> ':'');
   return `<div class="match">
     <div class="side"><div class="who ${aWin?'winbold':'losedim'}">${teamAvatars(m.a)} ${escapeHtml(teamNames(m.a))}</div><div class="meta">${tags}${m.mode==='2v2'?'2נ2':'1נ1'}${withActions?` · ${when}`:''}</div></div>
     <div class="sc ${m.tech?'techsc':''}"><span class="${aWin?'':'muted'}">${m.sa}</span><span class="muted">–</span><span class="${bWin?'':'muted'}">${m.sb}</span></div>
@@ -662,6 +666,7 @@ function viewProfile(){
     <div class="kv"><span class="muted">נצחון במשחקים צמודים (הכרעה בשער)</span><b>${s.closeG?Math.round(s.clutchPct)+'% ('+s.closeW+'/'+s.closeG+')':'—'}</b></div>
     <div class="kv"><span class="muted">מאזן 2 נגד 2</span><b>${s.mode['2v2'].w}-${s.mode['2v2'].d}-${s.mode['2v2'].l}</b></div>
     <div class="kv"><span class="muted">מאזן 1 נגד 1</span><b>${s.mode['1v1'].w}-${s.mode['1v1'].d}-${s.mode['1v1'].l}</b></div>
+    <div class="kv"><span class="muted">🎯 מאזן לונג ריינג׳</span><b>${s.lr.w}-${s.lr.d}-${s.lr.l}</b></div>
   </div>
   ${(s.bestPartner||s.worstPartner)?`<h2 class="section"><span>כימיה</span></h2><div class="card">${s.bestPartner?relRow('💚 השותף הכי טוב',s.bestPartner):''}${s.worstPartner&&s.worstPartner.id!==s.bestPartner?.id?relRow('💔 הצמד הכי קשה',s.worstPartner):''}</div>`:''}
   ${(s.bunny||s.nemesis)?`<h2 class="section"><span>יריבויות</span></h2><div class="card">${s.bunny?relRow('😈 הקרבן האהוב',s.bunny):''}${s.nemesis&&s.nemesis.id!==s.bunny?.id?relRow('👹 האויב המושבע',s.nemesis):''}</div>`:''}
@@ -729,22 +734,16 @@ function setFeed(f){ui.feedFilter=f;render();}
 
 function saveMatch(){
   if(!entriesOpen()){openLockSheet();return toast('ההזנות נעולות');}
-  const need=ui.mode==='2v2'?2:1;
-  if(ui.teamA.length!==need||ui.teamB.length!==need)return toast('בחרו שחקנים קודם');
+  const nA=ui.teamA.length,nB=ui.teamB.length;
+  if(!(nA===nB&&(nA===1||nA===2)))return toast('בחרו מספר שווה בכל צד (1 או 2)');
   if(ui.teamA.some(id=>ui.teamB.includes(id)))return toast('שחקן נמצא בשתי הקבוצות');
-  const m={id:uid(),ts:now(),mode:ui.mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:ui.sa,sb:ui.sb};
-  state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast('נשמר ✓ — מוכן לריווש');render();
-}
-function saveTech(winnerSide){
-  if(!entriesOpen()){openLockSheet();return toast('ההזנות נעולות');}
-  const need=ui.mode==='2v2'?2:1;
-  if(ui.teamA.length!==need||ui.teamB.length!==need)return toast('בחרו שחקנים קודם');
-  if(ui.teamA.some(id=>ui.teamB.includes(id)))return toast('שחקן נמצא בשתי הקבוצות');
-  const m={id:uid(),ts:now(),mode:ui.mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:winnerSide==='A'?TECH_SCORE:0,sb:winnerSide==='B'?TECH_SCORE:0,tech:true};
-  state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast('⚖️ טכני! 🏳️ היריב נכנע');render();
+  const mode=nA===2?'2v2':'1v1';
+  const tech=Math.abs(ui.sa-ui.sb)>=3;
+  const m={id:uid(),ts:now(),mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:ui.sa,sb:ui.sb,tech,lr:!!ui.lr};
+  state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast(tech?'נשמר ⚖️ טכני ✓':'נשמר ✓ — מוכן לריווש');render();
 }
 function delMatch(id){if(!confirm('למחוק את המשחק?'))return;if(!state.deleted.includes(id))state.deleted.push(id);save();render();toast('נמחק');}
-function editMatch(id){const m=state.matches.find(x=>x.id===id);if(!m)return;ui.mode=m.mode;ui.teamA=m.a.slice();ui.teamB=m.b.slice();ui.sa=m.sa;ui.sb=m.sb;if(!state.deleted.includes(id))state.deleted.push(id);save();go('play');toast('נטען לעריכה — עדכנו ושמרו');}
+function editMatch(id){const m=state.matches.find(x=>x.id===id);if(!m)return;ui.teamA=m.a.slice();ui.teamB=m.b.slice();ui.sa=m.sa;ui.sb=m.sb;ui.lr=!!m.lr;if(!state.deleted.includes(id))state.deleted.push(id);save();go('play');toast('נטען לעריכה — עדכנו ושמרו');}
 
 function addPlayer(name,guest){const p=mkPlayer(name,guest);state.players.push(p);save();return p;}
 function addPlayerFromInput(elId){const el=document.getElementById(elId);const n=el.value.trim();if(!n)return;addPlayer(n,false);el.value='';render();setTimeout(()=>{const x=document.getElementById(elId);if(x)x.focus();},0);}
@@ -802,6 +801,7 @@ function initSync(announce){
     SYNC.client.from('fifa_rooms').select('data').eq('room',cfg.room).maybeSingle().then(({data,error})=>{
       if(error){SYNC.ok=false;updateSyncDot();if(announce)toast('שגיאת חיבור — בדקו את הפרטים');return;}
       if(data&&data.data)mergeRemote(data.data);else pushState();
+      if(!state.players.length){ensureSquad();render();} // חדר ריק לגמרי -> טוען את הסגל אוטומטית
       SYNC.ok=true;updateSyncDot();
     });
     SYNC.channel=SYNC.client.channel('fifa-'+cfg.room)
