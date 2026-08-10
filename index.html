@@ -14,7 +14,7 @@
   --txt:#eaf5ea; --dim:#8fae94; --dim2:#6a866f;
   --accent:#39e08a; --accent2:#26c46f; --accentink:#052013;
   --gold:#ffd25a; --silver:#cfe0e6; --bronze:#e0925a;
-  --win:#39e08a; --loss:#ff6b6b; --draw:#f4c04b; --tech:#b98bff;
+  --win:#39e08a; --loss:#ff6b6b; --draw:#f4c04b; --tech:#b98bff; --blue:#4aa8ff;
   --shadow:0 10px 30px rgba(0,0,0,.45);
   --r:18px;
 }
@@ -49,7 +49,7 @@ header.top{
 .syncdot.err{background:var(--loss)}
 .iconbtn{background:var(--card);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:12px;font-size:17px;display:flex;align-items:center;justify-content:center}
 
-h2.section{font-size:13px;letter-spacing:.6px;color:var(--dim);margin:22px 4px 10px;font-weight:800}
+h2.section{font-size:13px;letter-spacing:.6px;color:var(--dim);margin:22px 4px 10px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
 .card+.card{margin-top:12px}
 .muted{color:var(--dim)}
@@ -78,16 +78,50 @@ input::placeholder{color:var(--dim2)}
 .modeswitch{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
 .modeswitch button{flex:1;border:none;background:transparent;color:var(--dim);font-weight:800;font-size:15px;padding:11px;border-radius:10px}
 .modeswitch button.act{background:linear-gradient(180deg,var(--accent),var(--accent2));color:var(--accentink)}
-.teamblock{margin-top:12px}
-.teamlabel{font-size:12px;font-weight:800;color:var(--dim);margin:0 2px 8px;display:flex;justify-content:space-between}
-.slots{display:flex;gap:8px;flex-wrap:wrap}
-.slot{flex:1;min-width:130px;display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px dashed var(--line2);border-radius:14px;padding:8px 10px;min-height:52px}
-.slot.filled{border-style:solid;background:var(--card2)}
-.slot .name{font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot .x{color:var(--dim2);font-size:18px;padding:0 4px}
-.vs{text-align:center;color:var(--dim2);font-weight:900;letter-spacing:2px;margin:10px 0 2px;font-size:13px}
+
+.teamsummary{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch;margin-top:12px}
+.tsum{background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:10px;min-height:66px}
+.tsum.a{border-color:rgba(57,224,138,.5)} .tsum.b{border-color:rgba(74,168,255,.5)}
+.tsum .tl{font-size:11px;font-weight:800;color:var(--dim);margin-bottom:6px;display:flex;justify-content:space-between;gap:6px}
+.tsum .tp{display:flex;flex-wrap:wrap;gap:6px}
+.minip{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 9px 3px 4px;font-weight:700;font-size:13px}
+.vsbig{display:flex;align-items:center;color:var(--dim2);font-weight:900;font-size:12px}
+.hintline{font-size:12px;color:var(--dim);text-align:center;margin:12px 0 8px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pchip{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line2);border-radius:14px;padding:9px 10px;color:var(--txt);font-weight:700;font-size:15px;text-align:right}
+.pchip .pn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pchip.sel{border-color:var(--accent);background:rgba(57,224,138,.12)}
+.pchip.selb{border-color:var(--blue);background:rgba(74,168,255,.12)}
+.pchip.guest{border-style:dashed}
+.pchip.guest.sel,.pchip.guest.selb{border-color:var(--draw);background:rgba(244,192,75,.12)}
+.tbadge{font-size:11px;font-weight:900;border-radius:6px;padding:1px 6px;color:#06130b}
+.tbadge.a{background:var(--accent)} .tbadge.b{background:var(--blue)}
+.guestnote{margin-top:10px;font-size:12px;font-weight:700;color:var(--draw);background:rgba(244,192,75,.08);border:1px dashed #5a4a2a;border-radius:10px;padding:8px 10px;text-align:center}
+
+/* מגרש בחירה: ריבועים + גרירה */
+.arena{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;margin-top:12px;align-items:stretch}
+.zone{background:var(--bg2);border:1.5px dashed var(--line2);border-radius:16px;padding:10px;min-height:118px;display:flex;flex-direction:column;gap:8px;transition:background .12s,border-color .12s}
+.zone.a{border-color:rgba(57,224,138,.5)} .zone.b{border-color:rgba(74,168,255,.5)}
+.zone.over{border-style:solid;background:rgba(57,224,138,.09)}
+.zone .zh{font-size:11px;font-weight:800;color:var(--dim);display:flex;justify-content:space-between;gap:6px}
+.zone .ztiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:center;flex:1}
+.zone .zempty{color:var(--dim2);font-size:12px;text-align:center;margin:auto}
+.zonemid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--dim2);font-weight:900;font-size:12px}
+.poolwrap{margin-top:10px;border:1px solid transparent;border-radius:16px;padding:6px 2px;transition:background .12s}
+.poolwrap.over{background:rgba(255,255,255,.04);border-color:var(--line)}
+.poollabel{font-size:12px;color:var(--dim);text-align:center;margin:6px 0}
+.tilegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.tile{background:var(--card2);border:1.5px solid var(--line2);border-radius:14px;padding:9px 4px;display:flex;flex-direction:column;align-items:center;gap:5px;font-weight:700;font-size:13px;text-align:center;user-select:none;-webkit-user-select:none;touch-action:none;min-width:70px}
+.tile .tn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile.a{border-color:var(--accent);background:rgba(57,224,138,.14)}
+.tile.b{border-color:var(--blue);background:rgba(74,168,255,.14)}
+.tile.guest{border-style:dashed}
+.tile.dragging{opacity:.35}
+.tile-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-50%) scale(1.06);box-shadow:0 14px 34px rgba(0,0,0,.55);opacity:.96;margin:0}
+
 .scorewrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:14px}
 .scorebox{background:var(--bg2);border:1px solid var(--line2);border-radius:16px;padding:12px;text-align:center}
+.scorebox.a{border-color:rgba(57,224,138,.4)} .scorebox.b{border-color:rgba(74,168,255,.4)}
 .scorebox .lab{font-size:11px;color:var(--dim);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scorebox .num{font-size:42px;font-weight:900;line-height:1;margin:6px 0}
 .stepbtns{display:flex;gap:6px;justify-content:center}
@@ -97,21 +131,22 @@ input::placeholder{color:var(--dim2)}
 .chip{border:1px solid var(--line2);background:var(--card2);color:var(--txt);border-radius:11px;padding:8px 11px;font-weight:800;font-size:14px}
 .chip.act{background:linear-gradient(180deg,var(--accent),var(--accent2));color:var(--accentink);border-color:transparent}
 .techbar{margin-top:14px;padding:12px;border-radius:14px;border:1px dashed var(--tech);background:rgba(139,91,255,.08)}
-.techbar .h{font-weight:800;color:var(--tech);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.techbar .h{font-weight:800;color:var(--tech);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .techbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .techbtns button{border:1px solid var(--tech);background:rgba(139,91,255,.12);color:#e6d9ff;border-radius:12px;padding:11px;font-weight:800;font-size:14px}
 .techbtns button:disabled{opacity:.4}
+
+.lockbanner{background:rgba(255,107,107,.1);border:1px solid #5a2a2a;color:#ffb3b3;border-radius:12px;padding:10px 12px;font-weight:700;font-size:13px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lockpill{font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;border:1px solid var(--line2);background:var(--card2);color:var(--dim)}
+.lockpill.open{color:var(--accent);border-color:var(--accent)}
+.lockpill.closed{color:var(--loss);border-color:#5a2a2a}
+.lockpill.setup{color:var(--draw);border-color:#5a4a2a}
 
 .sheet-back{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:60;display:none}
 .sheet-back.on{display:block}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-bottom:none;border-radius:22px 22px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s cubic-bezier(.2,.8,.2,1);max-height:82vh;overflow:auto}
 .sheet.on{transform:translateY(0)}
 .grabber{width:42px;height:5px;border-radius:3px;background:var(--line2);margin:0 auto 12px}
-.picklist{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-.pickrow{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.pickrow.dis{opacity:.35}
-.pickrow .name{font-weight:700;flex:1}
-.pickrow .r{font-size:13px;color:var(--dim);font-weight:700}
 
 .lb-row{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid var(--line)}
 .lb-row:last-child{border-bottom:none}
@@ -129,6 +164,7 @@ input::placeholder{color:var(--dim2)}
 .hot{background:linear-gradient(180deg,#ff8a3d,#ff5a3d);color:#2a0a00}
 .cold{background:#16344a;color:#8fd0ff}
 .techbadge{background:rgba(139,91,255,.18);color:#d9c6ff;border:1px solid var(--tech);font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px}
+.friendlybadge{background:rgba(244,192,75,.12);color:var(--draw);border:1px solid #5a4a2a;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px}
 
 .match{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line)}
 .match:last-child{border-bottom:none}
@@ -167,7 +203,7 @@ nav.bottom button{flex:1;background:none;border:none;color:var(--dim2);font-size
 nav.bottom button .i{font-size:20px;line-height:1}
 nav.bottom button.act{color:var(--accent)}
 
-.empty{text-align:center;color:var(--dim);padding:34px 14px}
+.empty{text-align:center;color:var(--dim);padding:28px 14px}
 .empty .big{font-size:40px;margin-bottom:8px}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--line2);color:var(--txt);padding:11px 18px;border-radius:999px;font-weight:800;z-index:80;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--shadow)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -212,34 +248,56 @@ textarea{font-family:ui-monospace,Menlo,monospace;font-size:12px;width:100%;min-
 <script>
 /* ============================================================
    ליגת פיפ״א — אפליקציה בקובץ יחיד
-   מנוע הדירוג (Elo) והסטטיסטיקות הן פונקציות טהורות (ניתנות לבדיקה).
 ============================================================ */
-
 const LS_KEY='fifaLeague.he.v2';
 const CFG_KEY='fifaLeague.sync.v2';
 const COLORS=['#39e08a','#4aa8ff','#ff7ac2','#ffcf5a','#b98bff','#ff8f5a','#5ce1c9','#ff6b6b','#8be04a','#67c0ff','#ffa1d1','#c0f05a'];
 const TECH_SCORE=3; // תוצאת ברירת מחדל לניצחון טכני: 3-0
+const SQUAD=['רן','דודי','רפא','ביתן','בר','גוטמן','איתמר'];
 
-let state={players:[],matches:[],deleted:[],v:2};
+/* ============================================================
+   ★★ הגדרת סנכרון מובנית — כולם מחוברים אוטומטית ★★
+============================================================ */
+const EMBEDDED_SYNC={
+  url:  "https://xsypsujpfiykmgornzro.supabase.co",
+  anon: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeXBzdWpwZml5a21nb3JuenJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzODYxODgsImV4cCI6MjEwMTk2MjE4OH0.RZLY6IiV9TE6dcZoC-MANGVs120h1XqRfDnGVB24ZyY",
+  room: "main"
+};
+function isFilled(v){return typeof v==='string'&&v&&!/^PASTE_/.test(v);}
+function syncIsEmbedded(){return isFilled(EMBEDDED_SYNC.url)&&isFilled(EMBEDDED_SYNC.anon);}
+
+let state={players:[],matches:[],deleted:[],control:{open:true,pinHash:null,updatedAt:0},v:3};
 let ui={tab:'play',mode:'2v2',teamA:[],teamB:[],sa:0,sb:0,profileId:null,feedFilter:'all',ranksMode:'all',lastReused:false};
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function now(){return Date.now();}
-function load(){try{const raw=localStorage.getItem(LS_KEY);if(raw){state=Object.assign({players:[],matches:[],deleted:[],v:2},JSON.parse(raw));}}catch(e){}}
+function load(){try{const raw=localStorage.getItem(LS_KEY);if(raw){state=Object.assign({players:[],matches:[],deleted:[],control:{open:true,pinHash:null,updatedAt:0},v:3},JSON.parse(raw));if(!state.control)state.control={open:true,pinHash:null,updatedAt:0};}}catch(e){}}
 function persist(){localStorage.setItem(LS_KEY,JSON.stringify(state));}
 function save(){persist();syncPush();}
 
 function P(id){return state.players.find(p=>p.id===id);}
 function pname(id){const p=P(id);return p?p.name:'?';}
+function isGuest(id){const p=P(id);return !!(p&&p.guest);}
 function initials(n){return n.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('');}
 function avatar(id,size='sm'){const p=P(id);if(!p)return '';return `<span class="av ${size}" style="background:${p.color}">${escapeHtml(initials(p.name))}</span>`;}
 function escapeHtml(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function activeMatches(){return state.matches.filter(m=>!state.deleted.includes(m.id));}
+function matchIsFriendly(m){return m.a.concat(m.b).some(id=>isGuest(id));}
 function pairKey(a,b){return [a,b].sort().join('|');}
 function teamNames(team){return team.map(id=>pname(id)).join(' + ');}
 
+/* ---- squad seeding ---- */
+function mkPlayer(name,guest){return {id:uid(),name:name.trim().slice(0,24),color:guest?'#9aa7ad':COLORS[state.players.length%COLORS.length],guest:!!guest,created:now()};}
+function ensureSquad(){
+  let changed=false;
+  SQUAD.forEach(n=>{if(!state.players.some(p=>p.name===n&&!p.guest)){state.players.push(mkPlayer(n,false));changed=true;}});
+  if(!state.players.some(p=>p.guest)){state.players.push(mkPlayer('אורח',true));changed=true;}
+  if(changed)save();
+}
+function loadSquad(){ensureSquad();render();toast('הסגל נטען ✓');}
+
 /* ============================================================
-   מנוע Elo + סטטיסטיקות
+   מנוע Elo + סטטיסטיקות (טהור)
 ============================================================ */
 const ELO_START=1000, ELO_K=32;
 function eloExpected(ra,rb){return 1/(1+Math.pow(10,(rb-ra)/400));}
@@ -248,16 +306,9 @@ function movMultiplier(gd,ratingDiffWinner){if(gd===0)return 1;return Math.log(M
 function computeStats(players,matches){
   const ids=players.map(p=>p.id);
   const R={},S={};
-  ids.forEach(id=>{
-    R[id]=ELO_START;
-    S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,
-      resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,
-      partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0},'2v2':{w:0,d:0,l:0,g:0}},
-      techW:0,techL:0,closeG:0,closeW:0};
-  });
+  ids.forEach(id=>{R[id]=ELO_START;S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0},'2v2':{w:0,d:0,l:0,g:0}},techW:0,techL:0,closeG:0,closeW:0};});
   const chem={};
   const sorted=matches.slice().sort((x,y)=>(x.ts-y.ts)||(x.id<y.id?-1:1));
-
   for(const m of sorted){
     if(!m.a.every(id=>R[id]!=null)||!m.b.every(id=>R[id]!=null))continue;
     const ra=m.a.reduce((s,id)=>s+R[id],0)/m.a.length;
@@ -273,27 +324,17 @@ function computeStats(players,matches){
     applyTeam(m.b,m.a,dB,m.sb,m.sa,sB,m);
     if(m.mode==='2v2'){recordChem(m.a,sA);recordChem(m.b,sB);}
   }
-  function recordChem(team,res){
-    if(team.length<2)return;
-    for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++){
-      const k=pairKey(team[i],team[j]);
-      const c=chem[k]||(chem[k]={a:team[i],b:team[j],g:0,w:0,d:0,l:0});
-      c.g++;if(res===1)c.w++;else if(res===0.5)c.d++;else c.l++;
-    }
-  }
+  function recordChem(team,res){if(team.length<2)return;for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++){const k=pairKey(team[i],team[j]);const c=chem[k]||(chem[k]={a:team[i],b:team[j],g:0,w:0,d:0,l:0});c.g++;if(res===1)c.w++;else if(res===0.5)c.d++;else c.l++;}}
   function applyTeam(team,opp,delta,gf,ga,res,m){
     const gd=Math.abs(m.sa-m.sb);
     for(const id of team){
-      R[id]+=delta;const st=S[id];
-      st.games++;st.gf+=gf;st.ga+=ga;st.mode[m.mode].g++;
+      R[id]+=delta;const st=S[id];st.games++;st.gf+=gf;st.ga+=ga;st.mode[m.mode].g++;
       if(res===1){st.w++;st.mode[m.mode].w++;if(m.tech)st.techW++;}
       else if(res===0.5){st.d++;st.mode[m.mode].d++;}
       else {st.l++;st.mode[m.mode].l++;if(m.tech)st.techL++;}
       if(gd===1){st.closeG++;if(res===1)st.closeW++;}
-      st.history.push({t:m.ts,r:R[id]});
-      if(R[id]>st.peak)st.peak=R[id];
-      const rc=res===1?'W':res===0.5?'D':'L';
-      st.resultsChrono.push(rc);
+      st.history.push({t:m.ts,r:R[id]});if(R[id]>st.peak)st.peak=R[id];
+      const rc=res===1?'W':res===0.5?'D':'L';st.resultsChrono.push(rc);
       for(const t of team){if(t===id)continue;const pp=st.partners[t]||(st.partners[t]={g:0,w:0,d:0,l:0});pp.g++;if(rc==='W')pp.w++;else if(rc==='D')pp.d++;else pp.l++;}
       for(const o of opp){const oo=st.opps[o]||(st.opps[o]={g:0,w:0,d:0,l:0});oo.g++;if(rc==='W')oo.w++;else if(rc==='D')oo.d++;else oo.l++;}
       if(res===1&&(!st.big||(gf-ga)>st.big.margin))st.big={margin:gf-ga,gf,ga,opp:opp.slice(),ts:m.ts,mode:m.mode,tech:!!m.tech};
@@ -304,38 +345,24 @@ function computeStats(players,matches){
     let cs=0,ct='';for(let i=st.resultsChrono.length-1;i>=0;i--){const r=st.resultsChrono[i];if(i===st.resultsChrono.length-1){ct=r;cs=1;}else if(r===ct){cs++;}else break;}
     st.curStreak=cs;st.curType=ct;
     let lw=0,cur=0,lu=0,curu=0,ll=0,curl=0;
-    for(const r of st.resultsChrono){
-      if(r==='W'){cur++;curu++;curl=0;}else if(r==='D'){cur=0;curu++;curl=0;}else{cur=0;curu=0;curl++;}
-      if(cur>lw)lw=cur;if(curu>lu)lu=curu;if(curl>ll)ll=curl;
-    }
+    for(const r of st.resultsChrono){if(r==='W'){cur++;curu++;curl=0;}else if(r==='D'){cur=0;curu++;curl=0;}else{cur=0;curu=0;curl++;}if(cur>lw)lw=cur;if(curu>lu)lu=curu;if(curl>ll)ll=curl;}
     st.longestW=lw;st.longestUnb=lu;st.longestL=ll;
-    st.form=st.resultsChrono.slice(-5);
-    st.gd=st.gf-st.ga;
-    st.winpct=st.games?(st.w/st.games*100):0;
-    st.ppg=st.games?((st.w*3+st.d)/st.games):0;
-    st.gpg=st.games?(st.gf/st.games):0;
-    st.gapg=st.games?(st.ga/st.games):0;
+    st.form=st.resultsChrono.slice(-5);st.gd=st.gf-st.ga;
+    st.winpct=st.games?(st.w/st.games*100):0;st.ppg=st.games?((st.w*3+st.d)/st.games):0;
+    st.gpg=st.games?(st.gf/st.games):0;st.gapg=st.games?(st.ga/st.games):0;
     st.clutchPct=st.closeG?(st.closeW/st.closeG*100):0;
     const h=st.history;st.lastDelta=h.length>1?Math.round(h[h.length-1].r-h[h.length-2].r):0;
-    st.bestPartner=pickRel(st.partners,true);
-    st.worstPartner=pickRel(st.partners,false);
-    st.nemesis=pickRel(st.opps,false);
-    st.bunny=pickRel(st.opps,true);
+    st.bestPartner=pickRel(st.partners,true);st.worstPartner=pickRel(st.partners,false);
+    st.nemesis=pickRel(st.opps,false);st.bunny=pickRel(st.opps,true);
   });
   function rate(o){return o.g?(o.w+o.d*0.5)/o.g:0;}
-  function pickRel(map,best){
-    let arr=Object.entries(map).filter(([,v])=>v.g>=2);
-    if(!arr.length)return null;
-    arr.sort((a,b)=>best?(rate(b[1])-rate(a[1]))||(b[1].g-a[1].g):(rate(a[1])-rate(b[1]))||(b[1].g-a[1].g));
-    const [id,v]=arr[0];return {id,...v,rate:rate(v)};
-  }
+  function pickRel(map,best){let arr=Object.entries(map).filter(([,v])=>v.g>=2);if(!arr.length)return null;arr.sort((a,b)=>best?(rate(b[1])-rate(a[1]))||(b[1].g-a[1].g):(rate(a[1])-rate(b[1]))||(b[1].g-a[1].g));const [id,v]=arr[0];return {id,...v,rate:rate(v)};}
   const chemArr=Object.values(chem).map(c=>({...c,rate:c.g?(c.w+c.d*0.5)/c.g:0}));
   return {S,chem:chemArr,ranked:ids.map(id=>S[id])};
 }
 
 function computeRecords(players,matches,stats){
-  const rec=[],ms=matches;
-  if(!ms.length)return rec;
+  const rec=[],ms=matches;if(!ms.length)return rec;
   let bo=null;ms.forEach(m=>{if(m.tech)return;const gd=Math.abs(m.sa-m.sb);if(!bo||gd>bo.gd)bo={gd,m};});
   if(bo){const m=bo.m;const win=m.sa>m.sb?m.a:m.b,lo=m.sa>m.sb?m.b:m.a;const ws=Math.max(m.sa,m.sb),ls=Math.min(m.sa,m.sb);rec.push({ic:'💥',t:'המחיקה הגדולה ביותר',v:`${teamNames(win)} ${ws}–${ls} ${teamNames(lo)}`});}
   let mg=null;ms.forEach(m=>{if(m.tech)return;const x=Math.max(m.sa,m.sb);if(!mg||x>mg.x)mg={x,m};});
@@ -348,7 +375,6 @@ function computeRecords(players,matches,stats){
   if(lw)rec.push({ic:'⚡',t:'רצף הנצחונות הארוך ביותר',v:`${pname(lw.id)} — ${lw.n} ברצף`});
   let lu=null;stats.ranked.forEach(s=>{if(s.longestUnb&&(!lu||s.longestUnb>lu.n))lu={n:s.longestUnb,id:s.id};});
   if(lu)rec.push({ic:'🛡️',t:'הרצף הארוך ללא הפסד',v:`${pname(lu.id)} — ${lu.n} משחקים`});
-  // מלך הטכני
   let tk=null;stats.ranked.forEach(s=>{if(s.techW&&(!tk||s.techW>tk.n))tk={n:s.techW,id:s.id};});
   if(tk)rec.push({ic:'⚖️',t:'👑 מלך הטכני',v:`${pname(tk.id)} — ${tk.n} נצחונות טכניים`});
   let tl=null;stats.ranked.forEach(s=>{if(s.techL&&(!tl||s.techL>tl.n))tl={n:s.techL,id:s.id};});
@@ -368,7 +394,7 @@ function computeRecords(players,matches,stats){
    רינדור
 ============================================================ */
 let STATS=null,RECORDS=null;
-function recompute(){STATS=computeStats(state.players,activeMatches());RECORDS=computeRecords(state.players,activeMatches(),STATS);}
+function recompute(){const rated=activeMatches().filter(m=>!matchIsFriendly(m));STATS=computeStats(state.players,rated);RECORDS=computeRecords(state.players,rated,STATS);}
 function render(){
   recompute();
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('act',b.dataset.tab===ui.tab));
@@ -383,130 +409,180 @@ function render(){
 }
 function go(tab){ui.tab=tab;render();window.scrollTo(0,0);}
 
+/* ---------- entry lock ---------- */
+function entriesOpen(){const c=state.control||{};return !c.pinHash?true:!!c.open;}
+function setControl(patch){state.control=Object.assign({open:true,pinHash:null,updatedAt:0},state.control,patch,{updatedAt:now()});save();}
+async function sha256(str){
+  try{if(window.crypto&&crypto.subtle){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}}catch(e){}
+  let h=5381;for(let i=0;i<str.length;i++){h=((h<<5)+h+str.charCodeAt(i))>>>0;}return 'f'+h.toString(16);
+}
+function lockPill(){
+  if(!state.control||!state.control.pinHash)return `<button class="lockpill setup" onclick="openLockSheet()">⚙ הגדר נעילה</button>`;
+  return entriesOpen()?`<button class="lockpill open" onclick="openLockSheet()">🔓 הזנות פתוחות</button>`:`<button class="lockpill closed" onclick="openLockSheet()">🔒 הזנות נעולות</button>`;
+}
+function lockBanner(){return `<div class="lockbanner"><span>🔒 ההזנות נעולות${state.control&&state.control.pinHash?' — יפתחו בערב הפיפא':''}</span><button class="linkish" onclick="openLockSheet()">פתיחה</button></div>`;}
+function openLockSheet(){
+  const c=state.control||{};
+  if(!c.pinHash){
+    openSheet(`<b style="font-size:17px">הגדרת סיסמת מנהל</b>
+      <p class="small muted" style="margin:6px 0 12px">בחר סיסמה שרק אתה יודע (6+ תווים — עדיף צירוף מילים כמו <code>בננה-טרקטור-7</code>, לא 1234). אחרי ההגדרה ההזנות ננעלות, ותפתח אותן בערב הפיפא. הסיסמה עצמה <b>לא נשמרת באתר ולא ב-HTML</b> — נשמרת רק טביעת אצבע מוצפנת (עם salt) שאי אפשר להפוך חזרה.</p>
+      <input id="pin1" type="password" placeholder="סיסמת מנהל" style="direction:ltr;text-align:center">
+      <button class="btn" style="margin-top:10px" onclick="doSetPin()">שמור וקבע כמנהל</button>`);
+  }else{
+    const open=!!c.open;
+    openSheet(`<b style="font-size:17px">${open?'🔓 ההזנות פתוחות':'🔒 ההזנות נעולות'}</b>
+      <p class="small muted" style="margin:6px 0 12px">${open?'כרגע כולם יכולים להזין משחקים. נעל כשמסיימים את הערב.':'רק אחרי שתפתח, יהיה אפשר להזין משחקים בכל המכשירים.'}</p>
+      <input id="pinc" type="password" placeholder="סיסמת מנהל" style="direction:ltr;text-align:center">
+      <button class="btn ${open?'danger':''}" style="margin-top:10px" onclick="doToggle()">${open?'נעל הזנות':'פתח הזנות'}</button>
+      <button class="linkish" style="margin-top:14px;display:block;text-align:center;width:100%" onclick="doChangePin()">שינוי סיסמת מנהל</button>`);
+  }
+}
+function genSalt(){return Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random().toString(36).slice(2);}
+async function hashPass(salt,pass){return sha256((salt||'')+'::fifa::'+pass);}
+async function doSetPin(){const p=(document.getElementById('pin1').value||'').trim();if(p.length<6)return toast('סיסמה קצרה מדי (6+ תווים)');const salt=genSalt();setControl({salt,pinHash:await hashPass(salt,p),open:false});closeSheet();render();toast('נקבעה סיסמת מנהל · ההזנות נעולות 🔒');}
+async function doToggle(){const p=(document.getElementById('pinc').value||'').trim();if(await hashPass(state.control.salt,p)!==state.control.pinHash)return toast('סיסמה שגויה');setControl({open:!state.control.open});closeSheet();render();toast(state.control.open?'הזנות פתוחות 🔓':'הזנות נעולות 🔒');}
+async function doChangePin(){const p=prompt('סיסמת מנהל נוכחית:');if(p==null)return;if(await hashPass(state.control.salt,p.trim())!==state.control.pinHash)return toast('סיסמה שגויה');const np=prompt('סיסמה חדשה (6+ תווים):');if(!np||np.trim().length<6)return toast('סיסמה קצרה מדי');const salt=genSalt();setControl({salt,pinHash:await hashPass(salt,np.trim())});toast('הסיסמה עודכנה ✓');}
+
 /* ---------- משחק ---------- */
 function viewPlay(){
-  if(state.players.length<2)return onboard();
+  if(state.players.filter(p=>!p.guest).length<2)return onboard();
   const need=ui.mode==='2v2'?2:1;
   const filled=ui.teamA.length===need&&ui.teamB.length===need;
+  const locked=!entriesOpen();
   const commonScores=['0-0','1-0','2-0','2-1','3-0','3-1','3-2','1-1','4-0','2-2','4-2','5-1'];
   const cur=ui.sa+'-'+ui.sb;
+  const involvesGuest=[...ui.teamA,...ui.teamB].some(id=>isGuest(id));
   return `
-  <h2 class="section">משחק חדש</h2>
+  <h2 class="section"><span>משחק חדש</span>${lockPill()}</h2>
   <div class="card">
+    ${locked?lockBanner():''}
     <div class="modeswitch">
       <button class="${ui.mode==='2v2'?'act':''}" onclick="setMode('2v2')">2 נגד 2</button>
       <button class="${ui.mode==='1v1'?'act':''}" onclick="setMode('1v1')">1 נגד 1</button>
     </div>
-    <div class="teamblock">
-      <div class="teamlabel"><span>קבוצה א׳</span>${teamRatingLabel(ui.teamA)}</div>
-      <div class="slots">${slotsHtml('A')}</div>
+    <div class="arena">
+      ${zoneHtml('A')}
+      <div class="zonemid"><span>נגד</span><button class="iconbtn" style="width:34px;height:34px;font-size:15px" onclick="swapTeams()">⇄</button></div>
+      ${zoneHtml('B')}
     </div>
-    <div class="vs">— נגד —</div>
-    <div class="teamblock">
-      <div class="teamlabel"><span>קבוצה ב׳</span>${teamRatingLabel(ui.teamB)}</div>
-      <div class="slots">${slotsHtml('B')}</div>
-    </div>
+    ${poolHtml()}
+    <div class="center" style="margin-top:6px">${(ui.teamA.length||ui.teamB.length)?`<button class="linkish" onclick="clearTeams()">נקה בחירה</button>`:''}</div>
+
     <div class="scorewrap">
-      <div class="scorebox">
+      <div class="scorebox a">
         <div class="lab">${escapeHtml(teamShort('A'))||'קבוצה א׳'}</div>
         <div class="num">${ui.sa}</div>
         <div class="stepbtns"><button onclick="bump('a',-1)">–</button><button onclick="bump('a',1)">+</button></div>
       </div>
       <div class="dash">–</div>
-      <div class="scorebox">
+      <div class="scorebox b">
         <div class="lab">${escapeHtml(teamShort('B'))||'קבוצה ב׳'}</div>
         <div class="num">${ui.sb}</div>
         <div class="stepbtns"><button onclick="bump('b',-1)">–</button><button onclick="bump('b',1)">+</button></div>
       </div>
     </div>
-    <div class="chips">
-      ${commonScores.map(s=>`<button class="chip ${s===cur?'act':''}" onclick="quick('${s}')">${s.replace('-','–')}</button>`).join('')}
-    </div>
+    <div class="chips">${commonScores.map(s=>`<button class="chip ${s===cur?'act':''}" onclick="quick('${s}')">${s.replace('-','–')}</button>`).join('')}</div>
+
+    ${involvesGuest?`<div class="guestnote">🎽 משחק עם אורח — לא נספר בדירוג ובסטטיסטיקות</div>`:''}
+
     <div style="margin-top:14px" class="grid2">
       <button class="btn sec" onclick="swapTeams()">⇄ החלף צדדים</button>
-      <button class="btn" ${filled?'':'disabled'} onclick="saveMatch()">שמור משחק</button>
+      <button class="btn" ${filled&&!locked?'':'disabled'} onclick="saveMatch()">שמור משחק</button>
     </div>
 
     <div class="techbar">
-      <div class="h">⚖️ ניצחון טכני <span class="muted small" style="font-weight:600">(יריב פרש / לא הופיע / התנתק — נרשם ${TECH_SCORE}–0)</span></div>
+      <div class="h">⚖️ ניצחון טכני <span class="muted small" style="font-weight:600">(יריב פרש / לא הופיע / התנתק — ${TECH_SCORE}–0)</span></div>
       <div class="techbtns">
-        <button ${filled?'':'disabled'} onclick="saveTech('A')">🏳️ טכני לקבוצה א׳</button>
-        <button ${filled?'':'disabled'} onclick="saveTech('B')">🏳️ טכני לקבוצה ב׳</button>
+        <button ${filled&&!locked?'':'disabled'} onclick="saveTech('A')">🏳️ טכני לקבוצה א׳</button>
+        <button ${filled&&!locked?'':'disabled'} onclick="saveTech('B')">🏳️ טכני לקבוצה ב׳</button>
       </div>
     </div>
-    ${ui.lastReused?`<div class="small muted center" style="margin-top:10px">ההרכב האחרון נשמר — הקש על שם כדי לשנות</div>`:''}
+    ${ui.lastReused?`<div class="small muted center" style="margin-top:10px">ההרכב האחרון נשמר — הקש שם כדי לשנות</div>`:''}
   </div>
   ${recentMini()}`;
 }
-function teamRatingLabel(team){if(!team.length||!STATS)return '';const avg=Math.round(team.reduce((s,id)=>s+(STATS.S[id]?.rating||1000),0)/team.length);return `<span class="muted small">ממוצע ${avg}</span>`;}
+function teamRatingLabel(team){const real=team.filter(id=>!isGuest(id));if(!real.length||!STATS)return '';const avg=Math.round(real.reduce((s,id)=>s+(STATS.S[id]?.rating||1000),0)/real.length);return `<span class="muted small">ממוצע ${avg}</span>`;}
 function teamShort(side){const t=side==='A'?ui.teamA:ui.teamB;return t.map(id=>pname(id).split(/\s+/)[0]).join(' + ');}
-function slotsHtml(side){
-  const team=side==='A'?ui.teamA:ui.teamB;
+function tileHtml(id,zone){const p=P(id);const cls=zone==='A'?'a':zone==='B'?'b':'';return `<div class="tile ${cls} ${p.guest?'guest':''}" data-id="${id}" onpointerdown="tileDown(event,'${id}')">${avatar(id,'md')}<span class="tn">${escapeHtml(p.name)}</span></div>`;}
+function zoneHtml(side){const team=side==='A'?ui.teamA:ui.teamB;const tiles=team.map(id=>tileHtml(id,side)).join('');return `<div class="zone ${side==='A'?'a':'b'}" data-drop="${side}"><div class="zh"><span>קבוצה ${side==='A'?'א׳':'ב׳'}</span>${teamRatingLabel(team)}</div><div class="ztiles">${tiles||`<div class="zempty">גררו או הקישו</div>`}</div></div>`;}
+function poolHtml(){const used=new Set([...ui.teamA,...ui.teamB]);const pool=state.players.slice().sort((a,b)=>((a.guest?1:0)-(b.guest?1:0))||((STATS.S[b.id]?.rating||1000)-(STATS.S[a.id]?.rating||1000))).filter(p=>!used.has(p.id));return `<div class="poolwrap" data-drop="pool"><div class="poollabel">הקישו על מי ששיחק — או גררו לקבוצה</div><div class="tilegrid">${pool.map(p=>tileHtml(p.id,'pool')).join('')||'<div class="zempty" style="grid-column:1/-1;padding:8px">כל השחקנים נבחרו</div>'}</div></div>`;}
+function tapTile(id){const need=ui.mode==='2v2'?2:1;const iA=ui.teamA.indexOf(id),iB=ui.teamB.indexOf(id);if(iA>-1)ui.teamA.splice(iA,1);else if(iB>-1)ui.teamB.splice(iB,1);else if(ui.teamA.length<need)ui.teamA.push(id);else if(ui.teamB.length<need)ui.teamB.push(id);else{toast('הקבוצות מלאות — הסירו שחקן קודם');return;}ui.lastReused=false;render();}
+function removeFromTeams(id){let i=ui.teamA.indexOf(id);if(i>-1)ui.teamA.splice(i,1);i=ui.teamB.indexOf(id);if(i>-1)ui.teamB.splice(i,1);}
+function dropInZone(id,zone){
   const need=ui.mode==='2v2'?2:1;
-  let out='';
-  for(let i=0;i<need;i++){
-    const id=team[i];
-    if(id){out+=`<div class="slot filled" onclick="openPicker('${side}',${i})">${avatar(id,'sm')}<span class="name">${escapeHtml(pname(id))}</span><span class="x" onclick="event.stopPropagation();clearSlot('${side}',${i})">✕</span></div>`;}
-    else{out+=`<div class="slot" onclick="openPicker('${side}',${i})"><span class="av sm" style="background:var(--line2);color:var(--dim)">+</span><span class="name muted">הוסף שחקן</span></div>`;}
+  const from=ui.teamA.includes(id)?'A':ui.teamB.includes(id)?'B':'pool';
+  if(zone==='pool'){removeFromTeams(id);ui.lastReused=false;render();return;}
+  const arr=zone==='A'?ui.teamA:ui.teamB;
+  if(arr.includes(id)){render();return;}
+  removeFromTeams(id);
+  if(arr.length>=need){const displaced=arr.pop();if(from==='A'&&ui.teamA.length<need)ui.teamA.push(displaced);else if(from==='B'&&ui.teamB.length<need)ui.teamB.push(displaced);}
+  arr.push(id);ui.lastReused=false;render();
+}
+function clearTeams(){ui.teamA=[];ui.teamB=[];ui.lastReused=false;render();}
+function zoneAt(x,y){const el=document.elementFromPoint(x,y);if(!el)return null;const z=el.closest('[data-drop]');return z?z.dataset.drop:null;}
+function tileDown(ev,id){
+  ev.preventDefault();
+  const startX=ev.clientX,startY=ev.clientY,srcEl=ev.currentTarget;
+  let moved=false,ghost=null,lastZone=null;
+  function move(e){
+    const dx=e.clientX-startX,dy=e.clientY-startY;
+    if(!moved&&Math.hypot(dx,dy)<8)return;
+    moved=true;
+    if(!ghost){ghost=srcEl.cloneNode(true);ghost.classList.add('tile-ghost');ghost.classList.remove('dragging');ghost.style.width=srcEl.offsetWidth+'px';document.body.appendChild(ghost);srcEl.classList.add('dragging');}
+    ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
+    const z=zoneAt(e.clientX,e.clientY);
+    if(z!==lastZone){document.querySelectorAll('[data-drop]').forEach(el=>el.classList.remove('over'));if(z){const el=document.querySelector('[data-drop="'+z+'"]');el&&el.classList.add('over');}lastZone=z;}
   }
-  return out;
+  function up(e){
+    window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);
+    document.querySelectorAll('[data-drop]').forEach(el=>el.classList.remove('over'));
+    if(ghost)ghost.remove();srcEl.classList.remove('dragging');
+    if(moved){const z=zoneAt(e.clientX,e.clientY);if(z)dropInZone(id,z);else render();}
+    else tapTile(id);
+  }
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
 }
-function recentMini(){
-  const ms=activeMatches().slice().sort((a,b)=>b.ts-a.ts).slice(0,3);
-  if(!ms.length)return '';
-  return `<h2 class="section">זה עתה שוחק</h2><div class="card divlist">${ms.map(m=>matchRow(m)).join('')}</div>`;
-}
+function recentMini(){const ms=activeMatches().slice().sort((a,b)=>b.ts-a.ts).slice(0,3);if(!ms.length)return '';return `<h2 class="section"><span>זה עתה שוחק</span></h2><div class="card divlist">${ms.map(m=>matchRow(m)).join('')}</div>`;}
 function onboard(){
-  return `
-  <div class="card" style="margin-top:18px">
-    <div class="empty"><div class="big">⚽</div>
-    <div style="font-size:18px;font-weight:900;color:var(--txt)">הוסיפו את הסגל</div>
-    <div class="muted" style="margin:6px 0 4px">צריך לפחות 2 שחקנים כדי להתחיל. תוסיפו את החבר׳ה לפני הפתיחה.</div></div>
-    <div class="row" style="margin-top:10px">
-      <input id="obName" placeholder="שם שחקן" onkeydown="if(event.key==='Enter')addPlayerFromInput('obName')">
-      <button class="btn" style="width:auto;padding:14px 18px" onclick="addPlayerFromInput('obName')">הוסף</button>
-    </div>
-    <div id="obList" style="margin-top:6px">${state.players.map(playerChipRow).join('')}</div>
+  return `<div class="card" style="margin-top:18px">
+    <div class="empty"><div class="big">⚽</div><div style="font-size:18px;font-weight:900;color:var(--txt)">הסגל שלנו</div><div class="muted" style="margin:6px 0">טענו את הסגל בלחיצה, או הוסיפו ידנית.</div></div>
+    <button class="btn" onclick="loadSquad()">טען את הסגל · רן, דודי, רפא, ביתן, בר, גוטמן, איתמר + אורח</button>
+    <div class="row" style="margin-top:12px"><input id="obName" placeholder="הוספת שחקן ידנית" onkeydown="if(event.key==='Enter')addPlayerFromInput('obName')"><button class="btn sec" style="width:auto;padding:14px 18px" onclick="addPlayerFromInput('obName')">הוסף</button></div>
+    <div style="margin-top:6px">${state.players.map(playerChipRow).join('')}</div>
   </div>`;
 }
-function playerChipRow(p){return `<div class="row" style="padding:8px 2px;border-bottom:1px solid var(--line)">${avatar(p.id,'sm')}<b style="flex:1">${escapeHtml(p.name)}</b><button class="linkish" onclick="removePlayer('${p.id}')">הסר</button></div>`;}
+function playerChipRow(p){return `<div class="row" style="padding:8px 2px;border-bottom:1px solid var(--line)">${avatar(p.id,'sm')}<b style="flex:1">${escapeHtml(p.name)} ${p.guest?'<span class="friendlybadge">אורח</span>':''}</b><button class="linkish" onclick="removePlayer('${p.id}')">הסר</button></div>`;}
 
 /* ---------- דירוג ---------- */
 function viewRanks(){
   if(!state.players.length)return `<div class="card"><div class="empty"><div class="big">🏆</div>אין שחקנים עדיין.</div></div>`;
   const modeSel=ui.ranksMode;
-  let list=STATS.ranked.filter(s=>s.games>0);
+  let list=STATS.ranked.filter(s=>s.games>0&&!isGuest(s.id));
   if(modeSel!=='all')list=list.filter(s=>s.mode[modeSel].g>0);
   list=list.slice().sort((a,b)=>b.rating-a.rating);
-  const unranked=STATS.ranked.filter(s=>s.games===0);
+  const unranked=STATS.ranked.filter(s=>s.games===0&&!isGuest(s.id));
   return `
-  <h2 class="section">טבלת דירוג</h2>
+  <h2 class="section"><span>טבלת דירוג</span></h2>
   <div class="seg">
     <button class="${modeSel==='all'?'act':''}" onclick="setRanksMode('all')">כללי</button>
     <button class="${modeSel==='2v2'?'act':''}" onclick="setRanksMode('2v2')">2 נגד 2</button>
     <button class="${modeSel==='1v1'?'act':''}" onclick="setRanksMode('1v1')">1 נגד 1</button>
   </div>
-  <div class="card divlist" style="margin-top:10px">
-    ${list.length?list.map((s,i)=>lbRow(s,i,modeSel)).join(''):`<div class="empty small">אין עדיין משחקים במצב הזה.</div>`}
-  </div>
-  ${unranked.length?`<h2 class="section">עדיין לא מדורגים</h2><div class="card">${unranked.map(s=>`<div class="row" style="padding:7px 2px">${avatar(s.id,'sm')}<b style="flex:1">${escapeHtml(pname(s.id))}</b><span class="muted small">0 משחקים</span></div>`).join('')}</div>`:''}
-  <div class="small muted center" style="margin-top:12px">הדירוג הוא ציון כישרון (Elo). הוא עולה יותר על ניצחון מול קבוצה חזקה ובהפרש גדול — ולכן אומר משהו עליך גם כשמתחלפים שותפים.</div>`;
+  <div class="card divlist" style="margin-top:10px">${list.length?list.map((s,i)=>lbRow(s,i,modeSel)).join(''):`<div class="empty small">אין עדיין משחקים במצב הזה.</div>`}</div>
+  ${unranked.length?`<h2 class="section"><span>עדיין לא מדורגים</span></h2><div class="card">${unranked.map(s=>`<div class="row" style="padding:7px 2px">${avatar(s.id,'sm')}<b style="flex:1">${escapeHtml(pname(s.id))}</b><span class="muted small">0 משחקים</span></div>`).join('')}</div>`:''}
+  <div class="small muted center" style="margin-top:12px">הדירוג הוא ציון כישרון (Elo). הוא עולה יותר על ניצחון מול קבוצה חזקה ובהפרש גדול — ולכן אומר משהו עליך גם כשמתחלפים שותפים. משחקי אורח לא נספרים.</div>`;
 }
 function lbRow(s,i,modeSel){
   const rank=i+1;
   const rec=modeSel==='all'?`${s.w}-${s.d}-${s.l}`:`${s.mode[modeSel].w}-${s.mode[modeSel].d}-${s.mode[modeSel].l}`;
   const streak=s.curStreak>=3&&s.curType==='W'?`<span class="streakbadge hot">🔥 ${s.curStreak} נצ׳</span>`:(s.curStreak>=3&&s.curType==='L'?`<span class="streakbadge cold">❄ ${s.curStreak} הפ׳</span>`:'');
   const tech=s.techW?`<span class="techbadge">⚖️ ${s.techW}</span>`:'';
-  const dcls=s.lastDelta>0?'up':s.lastDelta<0?'down':'flat';
-  const darr=s.lastDelta>0?'▲':s.lastDelta<0?'▼':'–';
+  const dcls=s.lastDelta>0?'up':s.lastDelta<0?'down':'flat';const darr=s.lastDelta>0?'▲':s.lastDelta<0?'▼':'–';
   const medal=rank<=3?['🥇','🥈','🥉'][rank-1]:rank;
   return `<div class="lb-row" onclick="openProfile('${s.id}')">
-    <div class="rank">${medal}</div>
-    ${avatar(s.id,'md')}
-    <div class="lb-main">
-      <div class="nm">${escapeHtml(pname(s.id))} ${streak} ${tech}</div>
-      <div class="sub"><span dir="ltr">${rec}</span><span>נ׳-ת׳-ה׳</span><span>${formHtml(s.form)}</span></div>
-    </div>
+    <div class="rank">${medal}</div>${avatar(s.id,'md')}
+    <div class="lb-main"><div class="nm">${escapeHtml(pname(s.id))} ${streak} ${tech}</div>
+      <div class="sub"><span dir="ltr">${rec}</span><span>נ׳-ת׳-ה׳</span><span>${formHtml(s.form)}</span></div></div>
     <div class="rating">${s.rating}<span class="d ${dcls}">${darr}${s.lastDelta?Math.abs(s.lastDelta):''}</span></div>
   </div>`;
 }
@@ -519,31 +595,22 @@ function viewFeed(){
   if(ui.feedFilter==='1v1')ms=ms.filter(m=>m.mode==='1v1');
   if(ui.feedFilter==='tech')ms=ms.filter(m=>m.tech);
   return `
-  <h2 class="section">היסטוריית משחקים <span class="muted" style="font-weight:600">(${ms.length})</span></h2>
+  <h2 class="section"><span>היסטוריית משחקים (${ms.length})</span></h2>
   <div class="seg">
     <button class="${ui.feedFilter==='all'?'act':''}" onclick="setFeed('all')">הכל</button>
     <button class="${ui.feedFilter==='2v2'?'act':''}" onclick="setFeed('2v2')">2 נגד 2</button>
     <button class="${ui.feedFilter==='1v1'?'act':''}" onclick="setFeed('1v1')">1 נגד 1</button>
     <button class="${ui.feedFilter==='tech'?'act':''}" onclick="setFeed('tech')">⚖️ טכניים</button>
   </div>
-  <div class="card divlist" style="margin-top:10px">
-    ${ms.length?ms.map(m=>matchRow(m,true)).join(''):`<div class="empty"><div class="big">📜</div>אין משחקים.</div>`}
-  </div>`;
+  <div class="card divlist" style="margin-top:10px">${ms.length?ms.map(m=>matchRow(m,true)).join(''):`<div class="empty"><div class="big">📜</div>אין משחקים.</div>`}</div>`;
 }
 function matchRow(m,withActions){
-  const aWin=m.sa>m.sb,bWin=m.sb>m.sa;
-  const when=timeAgo(m.ts);
-  const techChip=m.tech?`<span class="techbadge">⚖️ טכני</span> `:'';
+  const aWin=m.sa>m.sb,bWin=m.sb>m.sa;const when=timeAgo(m.ts);const fr=matchIsFriendly(m);
+  const tags=(m.tech?'<span class="techbadge">⚖️ טכני</span> ':'')+(fr?'<span class="friendlybadge">🎽 ידידותי</span> ':'');
   return `<div class="match">
-    <div class="side">
-      <div class="who ${aWin?'winbold':'losedim'}">${teamAvatars(m.a)} ${escapeHtml(teamNames(m.a))}</div>
-      <div class="meta">${techChip}${m.mode==='2v2'?'2נ2':'1נ1'}${withActions?` · ${when}`:''}</div>
-    </div>
+    <div class="side"><div class="who ${aWin?'winbold':'losedim'}">${teamAvatars(m.a)} ${escapeHtml(teamNames(m.a))}</div><div class="meta">${tags}${m.mode==='2v2'?'2נ2':'1נ1'}${withActions?` · ${when}`:''}</div></div>
     <div class="sc ${m.tech?'techsc':''}"><span class="${aWin?'':'muted'}">${m.sa}</span><span class="muted">–</span><span class="${bWin?'':'muted'}">${m.sb}</span></div>
-    <div class="side left">
-      <div class="who ${bWin?'winbold':'losedim'}">${escapeHtml(teamNames(m.b))} ${teamAvatars(m.b)}</div>
-      ${withActions?`<div class="meta"><button class="linkish" onclick="editMatch('${m.id}')">עריכה</button> · <button class="linkish" onclick="delMatch('${m.id}')">מחיקה</button></div>`:''}
-    </div>
+    <div class="side left"><div class="who ${bWin?'winbold':'losedim'}">${escapeHtml(teamNames(m.b))} ${teamAvatars(m.b)}</div>${withActions?`<div class="meta"><button class="linkish" onclick="editMatch('${m.id}')">עריכה</button> · <button class="linkish" onclick="delMatch('${m.id}')">מחיקה</button></div>`:''}</div>
   </div>`;
 }
 function teamAvatars(team){return team.map(id=>avatar(id,'sm')).join('');}
@@ -551,21 +618,15 @@ function timeAgo(ts){const s=(Date.now()-ts)/1000;if(s<60)return 'עכשיו';if
 
 /* ---------- שיאים ---------- */
 function viewRecords(){
-  if(!activeMatches().length)return `<div class="card"><div class="empty"><div class="big">🥇</div>שחקו כמה משחקים כדי לפתוח שיאים.</div></div>`;
-  return `<h2 class="section">היכל התהילה</h2>
+  if(!activeMatches().filter(m=>!matchIsFriendly(m)).length)return `<div class="card"><div class="empty"><div class="big">🥇</div>שחקו כמה משחקים כדי לפתוח שיאים.</div></div>`;
+  return `<h2 class="section"><span>היכל התהילה</span></h2>
   <div class="card">${RECORDS.map(r=>`<div class="rec"><div class="ic">${r.ic}</div><div><div class="t">${r.t}</div><div class="v">${escapeHtml(r.v)}</div></div></div>`).join('')}</div>
   ${chemistryCard()}`;
 }
 function chemistryCard(){
   const duos=STATS.chem.filter(c=>c.g>=2).sort((a,b)=>b.rate-a.rate||b.g-a.g);
   if(!duos.length)return '';
-  return `<h2 class="section">כימיה זוגית (2 נגד 2)</h2><div class="card">
-    ${duos.map(c=>{const pct=Math.round(c.rate*100);return `<div class="h2h-row">
-      <div style="display:flex">${avatar(c.a,'sm')}<span style="margin-right:-8px">${avatar(c.b,'sm')}</span></div>
-      <div style="flex:1"><b>${escapeHtml(pname(c.a))} + ${escapeHtml(pname(c.b))}</b><div class="small muted">${c.g} משחקים</div></div>
-      <div style="width:120px"><div class="bar"><i style="width:${pct}%;background:var(--win)"></i><i style="width:${100-pct}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${c.w}-${c.d}-${c.l} · ${pct}%</div></div>
-    </div>`;}).join('')}
-  </div>`;
+  return `<h2 class="section"><span>כימיה זוגית (2 נגד 2)</span></h2><div class="card">${duos.map(c=>{const pct=Math.round(c.rate*100);return `<div class="h2h-row"><div style="display:flex">${avatar(c.a,'sm')}<span style="margin-right:-8px">${avatar(c.b,'sm')}</span></div><div style="flex:1"><b>${escapeHtml(pname(c.a))} + ${escapeHtml(pname(c.b))}</b><div class="small muted">${c.g} משחקים</div></div><div style="width:120px"><div class="bar"><i style="width:${pct}%;background:var(--win)"></i><i style="width:${100-pct}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${c.w}-${c.d}-${c.l} · ${pct}%</div></div></div>`;}).join('')}</div>`;
 }
 
 /* ---------- פרופיל ---------- */
@@ -573,20 +634,14 @@ function openProfile(id){ui.profileId=id;go('profile');}
 function viewProfile(){
   const s=STATS.S[ui.profileId];if(!s)return `<div class="card">לא נמצא</div>`;
   const p=P(ui.profileId);
-  const rankList=STATS.ranked.filter(x=>x.games>0).sort((a,b)=>b.rating-a.rating);
+  const rankList=STATS.ranked.filter(x=>x.games>0&&!isGuest(x.id)).sort((a,b)=>b.rating-a.rating);
   const rank=rankList.findIndex(x=>x.id===s.id)+1;
   const streakTxt=s.curStreak?`${s.curStreak} ${s.curType==='W'?'נצחונות':s.curType==='L'?'הפסדים':'תיקו'} ברצף`:'—';
   return `
   <button class="linkish" style="margin:14px 2px 0;display:inline-block" onclick="go('ranks')">› חזרה לדירוג</button>
   <div class="card" style="margin-top:8px">
-    <div class="prof-head">
-      ${avatar(s.id,'lg')}
-      <div style="flex:1">
-        <div class="nm">${escapeHtml(p.name)}</div>
-        <div class="muted small">${rank?('מקום #'+rank):'לא מדורג'} · ${s.games} משחקים · ${Math.round(s.winpct)}% נצחון</div>
-      </div>
-      <div style="text-align:left"><div style="font-size:30px;font-weight:900;color:var(--accent)">${s.rating}</div><div class="small muted">דירוג · שיא ${Math.round(s.peak)}</div></div>
-    </div>
+    <div class="prof-head">${avatar(s.id,'lg')}<div style="flex:1"><div class="nm">${escapeHtml(p.name)}</div><div class="muted small">${rank?('מקום #'+rank):'לא מדורג'} · ${s.games} משחקים · ${Math.round(s.winpct)}% נצחון</div></div>
+      <div style="text-align:left"><div style="font-size:30px;font-weight:900;color:var(--accent)">${s.rating}</div><div class="small muted">דירוג · שיא ${Math.round(s.peak)}</div></div></div>
     ${sparkline(s.history)}
     <div class="statgrid">
       <div class="stat"><div class="v tag-win">${s.w}</div><div class="k">נצחונות</div></div>
@@ -596,10 +651,7 @@ function viewProfile(){
       <div class="stat"><div class="v">${s.ga}</div><div class="k">שערי חובה</div></div>
       <div class="stat"><div class="v ${s.gd>0?'tag-win':s.gd<0?'tag-loss':''}">${s.gd>0?'+':''}${s.gd}</div><div class="k">הפרש</div></div>
     </div>
-    ${(s.techW||s.techL)?`<div class="statgrid" style="grid-template-columns:1fr 1fr">
-      <div class="stat"><div class="v tag-tech">⚖️ ${s.techW}</div><div class="k">נצחונות טכניים</div></div>
-      <div class="stat"><div class="v tag-tech">🏳️ ${s.techL}</div><div class="k">ספג טכני</div></div>
-    </div>`:''}
+    ${(s.techW||s.techL)?`<div class="statgrid" style="grid-template-columns:1fr 1fr"><div class="stat"><div class="v tag-tech">⚖️ ${s.techW}</div><div class="k">נצחונות טכניים</div></div><div class="stat"><div class="v tag-tech">🏳️ ${s.techL}</div><div class="k">ספג טכני</div></div></div>`:''}
     <div class="kv" style="margin-top:12px"><span class="muted">כושר נוכחי</span><b>${formHtml(s.form)}</b></div>
     <div class="kv"><span class="muted">רצף נוכחי</span><b>${streakTxt}</b></div>
     <div class="kv"><span class="muted">רצף נצחונות הכי ארוך</span><b>${s.longestW}</b></div>
@@ -607,78 +659,62 @@ function viewProfile(){
     <div class="kv"><span class="muted">רצף הפסדים הכי ארוך</span><b>${s.longestL}</b></div>
     <div class="kv"><span class="muted">נקודות למשחק</span><b>${s.ppg.toFixed(2)}</b></div>
     <div class="kv"><span class="muted">שערים / ספיגות למשחק</span><b>${s.gpg.toFixed(1)} / ${s.gapg.toFixed(1)}</b></div>
-    <div class="kv"><span class="muted">אחוז נצחון במשחקים צמודים (הכרעה בשער)</span><b>${s.closeG?Math.round(s.clutchPct)+'% ('+s.closeW+'/'+s.closeG+')':'—'}</b></div>
+    <div class="kv"><span class="muted">נצחון במשחקים צמודים (הכרעה בשער)</span><b>${s.closeG?Math.round(s.clutchPct)+'% ('+s.closeW+'/'+s.closeG+')':'—'}</b></div>
     <div class="kv"><span class="muted">מאזן 2 נגד 2</span><b>${s.mode['2v2'].w}-${s.mode['2v2'].d}-${s.mode['2v2'].l}</b></div>
     <div class="kv"><span class="muted">מאזן 1 נגד 1</span><b>${s.mode['1v1'].w}-${s.mode['1v1'].d}-${s.mode['1v1'].l}</b></div>
   </div>
-
-  ${(s.bestPartner||s.worstPartner)?`<h2 class="section">כימיה</h2><div class="card">
-    ${s.bestPartner?relRow('💚 השותף הכי טוב',s.bestPartner):''}
-    ${s.worstPartner&&s.worstPartner.id!==s.bestPartner?.id?relRow('💔 הצמד הכי קשה',s.worstPartner):''}
-  </div>`:''}
-
-  ${(s.bunny||s.nemesis)?`<h2 class="section">יריבויות</h2><div class="card">
-    ${s.bunny?relRow('😈 הקרבן האהוב',s.bunny):''}
-    ${s.nemesis&&s.nemesis.id!==s.bunny?.id?relRow('👹 האויב המושבע',s.nemesis):''}
-  </div>`:''}
-
+  ${(s.bestPartner||s.worstPartner)?`<h2 class="section"><span>כימיה</span></h2><div class="card">${s.bestPartner?relRow('💚 השותף הכי טוב',s.bestPartner):''}${s.worstPartner&&s.worstPartner.id!==s.bestPartner?.id?relRow('💔 הצמד הכי קשה',s.worstPartner):''}</div>`:''}
+  ${(s.bunny||s.nemesis)?`<h2 class="section"><span>יריבויות</span></h2><div class="card">${s.bunny?relRow('😈 הקרבן האהוב',s.bunny):''}${s.nemesis&&s.nemesis.id!==s.bunny?.id?relRow('👹 האויב המושבע',s.nemesis):''}</div>`:''}
   ${h2hCard(s)}
-
-  ${s.big?`<h2 class="section">הנצחון החתום</h2><div class="card"><div class="rec"><div class="ic">${s.big.tech?'⚖️':'💥'}</div><div><div class="t">הנצחון הגדול · +${s.big.margin}${s.big.tech?' · טכני':''}</div><div class="v">${s.big.gf}–${s.big.ga} נגד ${escapeHtml(teamNames(s.big.opp))}</div></div></div></div>`:''}`;
+  ${s.big?`<h2 class="section"><span>הנצחון החתום</span></h2><div class="card"><div class="rec"><div class="ic">${s.big.tech?'⚖️':'💥'}</div><div><div class="t">הנצחון הגדול · +${s.big.margin}${s.big.tech?' · טכני':''}</div><div class="v">${s.big.gf}–${s.big.ga} נגד ${escapeHtml(teamNames(s.big.opp))}</div></div></div></div>`:''}`;
 }
 function relRow(label,r){const pct=Math.round(r.rate*100);return `<div class="h2h-row">${avatar(r.id,'md')}<div style="flex:1"><div class="small muted">${label}</div><b>${escapeHtml(pname(r.id))}</b></div><div style="text-align:left"><div class="h2h-rec">${r.w}-${r.d}-${r.l}</div><div class="small muted">${pct}%</div></div></div>`;}
-function h2hCard(s){
-  const opps=Object.entries(s.opps).sort((a,b)=>b[1].g-a[1].g);
-  if(!opps.length)return '';
-  return `<h2 class="section">ראש בראש</h2><div class="card">${opps.map(([id,v])=>{const pct=v.g?Math.round((v.w+v.d*0.5)/v.g*100):0;return `<div class="h2h-row">${avatar(id,'sm')}<div style="flex:1"><b>${escapeHtml(pname(id))}</b><div class="small muted">${v.g} משחקים</div></div><div style="width:120px"><div class="bar"><i style="width:${v.g?v.w/v.g*100:0}%;background:var(--win)"></i><i style="width:${v.g?v.d/v.g*100:0}%;background:var(--draw)"></i><i style="width:${v.g?v.l/v.g*100:0}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${v.w}-${v.d}-${v.l} · ${pct}%</div></div></div>`;}).join('')}</div>`;
-}
+function h2hCard(s){const opps=Object.entries(s.opps).sort((a,b)=>b[1].g-a[1].g);if(!opps.length)return '';return `<h2 class="section"><span>ראש בראש</span></h2><div class="card">${opps.map(([id,v])=>{const pct=v.g?Math.round((v.w+v.d*0.5)/v.g*100):0;return `<div class="h2h-row">${avatar(id,'sm')}<div style="flex:1"><b>${escapeHtml(pname(id))}</b><div class="small muted">${v.g} משחקים</div></div><div style="width:120px"><div class="bar"><i style="width:${v.g?v.w/v.g*100:0}%;background:var(--win)"></i><i style="width:${v.g?v.d/v.g*100:0}%;background:var(--draw)"></i><i style="width:${v.g?v.l/v.g*100:0}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${v.w}-${v.d}-${v.l} · ${pct}%</div></div></div>`;}).join('')}</div>`;}
 function sparkline(history){
   if(!history||history.length<2)return '<div class="small muted center" style="margin:12px 0">גרף הדירוג יופיע אחרי כמה משחקים.</div>';
   const pts=history.map(h=>h.r);const min=Math.min(...pts),max=Math.max(...pts);const rng=(max-min)||1;
-  const W=100,H=56,n=pts.length;
-  const coords=pts.map((r,i)=>[(i/(n-1))*W,H-6-((r-min)/rng)*(H-12)]);
+  const W=100,H=56,n=pts.length;const coords=pts.map((r,i)=>[(i/(n-1))*W,H-6-((r-min)/rng)*(H-12)]);
   const d=coords.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ');
   const area=`M0 ${H} `+coords.map(c=>'L'+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ')+` L${W} ${H} Z`;
   const up=pts[pts.length-1]>=pts[0];const col=up?'#39e08a':'#ff6b6b';
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="margin:12px 0 2px;transform:scaleX(-1)">
-    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
-    <path d="${area}" fill="url(#g)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  </svg>`;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="margin:12px 0 2px;transform:scaleX(-1)"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#g)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 
 /* ---------- עוד ---------- */
 function viewMore(){
-  const cfg=getCfg();
+  const cfg=getCfg();const hasPin=!!(state.control&&state.control.pinHash);
   return `
-  <h2 class="section">שחקנים</h2>
+  <h2 class="section"><span>מצב הזנות (מנהל)</span></h2>
+  <div class="card">
+    <div class="between"><b>${hasPin?(entriesOpen()?'🔓 פתוח להזנה':'🔒 נעול'):'ללא נעילה'}</b><button class="btn sec" style="width:auto;padding:10px 14px" onclick="openLockSheet()">${hasPin?'ניהול':'הגדרת סיסמה'}</button></div>
+    <p class="small muted" style="margin-top:8px">${hasPin?'רק מי שיודע את סיסמת המנהל יכול לפתוח/לנעול. כשנעול — אף אחד לא יכול לשמור משחקים.':'קבע סיסמת מנהל, ואז ההזנות ננעלות עד שתפתח אותן בערב הפיפא — כדי למנוע הזנות מזויפות בימים אחרים. הסיסמה לא נשמרת ב-HTML.'}</p>
+  </div>
+
+  <h2 class="section"><span>שחקנים</span></h2>
   <div class="card">
     <div class="row"><input id="mName" placeholder="הוסף שחקן" onkeydown="if(event.key==='Enter')addPlayerFromInput('mName')"><button class="btn" style="width:auto;padding:14px 18px" onclick="addPlayerFromInput('mName')">הוסף</button></div>
-    <div id="plist" style="margin-top:8px">${state.players.map(playerChipRow).join('')||'<div class="muted small">אין שחקנים.</div>'}</div>
+    <button class="btn sec" style="margin-top:10px" onclick="loadSquad()">טען/השלם את הסגל</button>
+    <div id="plist" style="margin-top:10px">${state.players.map(playerChipRow).join('')||'<div class="muted small">אין שחקנים.</div>'}</div>
   </div>
 
-  <h2 class="section">סנכרון בין מכשירים</h2>
+  <h2 class="section"><span>סנכרון בין מכשירים</span></h2>
   <div class="card">
-    <div class="between"><b>סנכרון חי</b><span class="pill" style="${cfg?'color:var(--accent)':'color:var(--dim)'}">${cfg?(SYNC.ok?'מחובר':'מוגדר'):'כבוי'}</span></div>
-    <p class="small muted" style="margin:8px 0 12px">כולם נכנסים לאותו קישור ומזינים את אותו <b>קוד חדר</b> — וכל הנתונים משותפים וחיים. מישהו אחד מקים בסיס נתונים חינמי ב-Supabase (2 דק׳). ההוראות בקובץ ההסבר שנשמר ליד האפליקציה.</p>
-    ${cfg?`
-      <div class="kv"><span class="muted">קוד חדר</span><b>${escapeHtml(cfg.room)}</b></div>
-      <div class="kv"><span class="muted">סטטוס</span><b class="${SYNC.ok?'up':'down'}">${SYNC.ok?'חי':'מתחבר…'}</b></div>
-      <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="openSyncSheet()">עריכה</button><button class="btn danger" onclick="disconnectSync()">ניתוק</button></div>
-    `:`<button class="btn" onclick="openSyncSheet()">הפעלת סנכרון</button>`}
+    <div class="between"><b>סנכרון חי</b><span class="pill" style="${cfg?'color:var(--accent)':'color:var(--dim)'}">${cfg?(SYNC.ok?'מחובר':'מתחבר…'):'כבוי'}</span></div>
+    ${syncIsEmbedded()?`
+      <p class="small muted" style="margin:8px 0 12px">הסנכרון מובנה — כל מי שפותח את הקישור מתחבר אוטומטית לאותה ליגה. אין מה להגדיר. 🎉</p>
+      <div class="kv"><span class="muted">חדר</span><b>${escapeHtml((cfg&&cfg.room)||EMBEDDED_SYNC.room)}</b></div>
+      <div class="kv"><span class="muted">סטטוס</span><b class="${SYNC.ok?'up':'down'}">${SYNC.ok?'חי ✓':'מתחבר…'}</b></div>
+    `:`<button class="btn" onclick="openSyncSheet()">הפעלת סנכרון (ידני)</button>`}
   </div>
 
-  <h2 class="section">נתונים</h2>
+  <h2 class="section"><span>נתונים</span></h2>
   <div class="card">
-    <div class="kv"><span class="muted">שחקנים</span><b>${state.players.length}</b></div>
     <div class="kv"><span class="muted">משחקים</span><b>${activeMatches().length}</b></div>
-    <div class="grid2" style="margin-top:12px">
-      <button class="btn sec" onclick="exportData()">ייצוא JSON</button>
-      <button class="btn sec" onclick="importPrompt()">ייבוא JSON</button>
-    </div>
+    <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="exportData()">ייצוא JSON</button><button class="btn sec" onclick="importPrompt()">ייבוא JSON</button></div>
     <button class="btn sec" style="margin-top:10px" onclick="seedDemo()">טעינת נתוני דוגמה</button>
-    <button class="btn danger" style="margin-top:10px" onclick="wipe()">איפוס הכל</button>
+    <button class="btn danger" style="margin-top:10px" onclick="wipe()">איפוס הכל (וטעינת הסגל מחדש)</button>
   </div>
-  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · הנתונים נשמרים במכשיר אלא אם מפעילים סנכרון.</div>`;
+  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · מסונכרן לכל החבר'ה.</div>`;
 }
 
 /* ============================================================
@@ -688,56 +724,31 @@ function setMode(m){ui.mode=m;if(m==='1v1'){ui.teamA=ui.teamA.slice(0,1);ui.team
 function bump(side,d){if(side==='a')ui.sa=Math.max(0,ui.sa+d);else ui.sb=Math.max(0,ui.sb+d);render();}
 function quick(s){const [a,b]=s.split('-').map(Number);ui.sa=a;ui.sb=b;render();}
 function swapTeams(){const t=ui.teamA;ui.teamA=ui.teamB;ui.teamB=t;const s=ui.sa;ui.sa=ui.sb;ui.sb=s;render();}
-function clearSlot(side,i){const t=side==='A'?ui.teamA:ui.teamB;t.splice(i,1);ui.lastReused=false;render();}
 function setRanksMode(m){ui.ranksMode=m;render();}
 function setFeed(f){ui.feedFilter=f;render();}
 
-let picker={side:null,idx:null};
-function openPicker(side,idx){
-  picker={side,idx};
-  const used=[...ui.teamA,...ui.teamB];
-  const rows=state.players.slice().sort((a,b)=>(STATS.S[b.id]?.rating||1000)-(STATS.S[a.id]?.rating||1000)).map(p=>{
-    const taken=used.includes(p.id);const r=STATS.S[p.id]?.rating||1000;
-    return `<div class="pickrow ${taken?'dis':''}" onclick="${taken?'':`choosePlayer('${p.id}')`}">${avatar(p.id,'md')}<span class="name">${escapeHtml(p.name)}</span><span class="r">${STATS.S[p.id]?.games?r:'—'}</span></div>`;
-  }).join('');
-  openSheet(`<div class="between" style="margin-bottom:4px"><b style="font-size:17px">בחירת שחקן · קבוצה ${side==='A'?'א׳':'ב׳'}</b></div>
-    <div class="picklist">${rows}</div>
-    <div class="row" style="margin-top:12px"><input id="quickAdd" placeholder="שחקן חדש…" onkeydown="if(event.key==='Enter')quickAddPlayer()"><button class="btn" style="width:auto;padding:13px 16px" onclick="quickAddPlayer()">הוסף</button></div>`);
-}
-function choosePlayer(id){const t=picker.side==='A'?ui.teamA:ui.teamB;t[picker.idx]=id;ui.lastReused=false;closeSheet();render();}
-function quickAddPlayer(){const el=document.getElementById('quickAdd');const n=el.value.trim();if(!n)return;const p=addPlayer(n);choosePlayer(p.id);}
-
 function saveMatch(){
+  if(!entriesOpen()){openLockSheet();return toast('ההזנות נעולות');}
   const need=ui.mode==='2v2'?2:1;
   if(ui.teamA.length!==need||ui.teamB.length!==need)return toast('בחרו שחקנים קודם');
   if(ui.teamA.some(id=>ui.teamB.includes(id)))return toast('שחקן נמצא בשתי הקבוצות');
   const m={id:uid(),ts:now(),mode:ui.mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:ui.sa,sb:ui.sb};
-  state.matches.push(m);save();
-  ui.sa=0;ui.sb=0;ui.lastReused=true;
-  toast('נשמר ✓ — מוכן לריווש');render();
+  state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast('נשמר ✓ — מוכן לריווש');render();
 }
 function saveTech(winnerSide){
+  if(!entriesOpen()){openLockSheet();return toast('ההזנות נעולות');}
   const need=ui.mode==='2v2'?2:1;
   if(ui.teamA.length!==need||ui.teamB.length!==need)return toast('בחרו שחקנים קודם');
   if(ui.teamA.some(id=>ui.teamB.includes(id)))return toast('שחקן נמצא בשתי הקבוצות');
-  const m={id:uid(),ts:now(),mode:ui.mode,a:ui.teamA.slice(),b:ui.teamB.slice(),
-    sa:winnerSide==='A'?TECH_SCORE:0, sb:winnerSide==='B'?TECH_SCORE:0, tech:true};
-  state.matches.push(m);save();
-  ui.sa=0;ui.sb=0;ui.lastReused=true;
-  toast('⚖️ טכני! 🏳️ היריב נכנע');render();
+  const m={id:uid(),ts:now(),mode:ui.mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:winnerSide==='A'?TECH_SCORE:0,sb:winnerSide==='B'?TECH_SCORE:0,tech:true};
+  state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast('⚖️ טכני! 🏳️ היריב נכנע');render();
 }
 function delMatch(id){if(!confirm('למחוק את המשחק?'))return;if(!state.deleted.includes(id))state.deleted.push(id);save();render();toast('נמחק');}
 function editMatch(id){const m=state.matches.find(x=>x.id===id);if(!m)return;ui.mode=m.mode;ui.teamA=m.a.slice();ui.teamB=m.b.slice();ui.sa=m.sa;ui.sb=m.sb;if(!state.deleted.includes(id))state.deleted.push(id);save();go('play');toast('נטען לעריכה — עדכנו ושמרו');}
 
-function addPlayer(name){const p={id:uid(),name:name.trim().slice(0,24),color:COLORS[state.players.length%COLORS.length],created:now()};state.players.push(p);save();return p;}
-function addPlayerFromInput(elId){const el=document.getElementById(elId);const n=el.value.trim();if(!n)return;addPlayer(n);el.value='';render();setTimeout(()=>{const x=document.getElementById(elId);if(x)x.focus();},0);}
-function removePlayer(id){
-  const played=activeMatches().some(m=>m.a.includes(id)||m.b.includes(id));
-  if(played){if(!confirm('לשחקן יש משחקים. להסיר בכל זאת? המשחקים יישארו עם השם.'))return;}
-  state.players=state.players.filter(p=>p.id!==id);
-  ui.teamA=ui.teamA.filter(x=>x!==id);ui.teamB=ui.teamB.filter(x=>x!==id);
-  save();render();
-}
+function addPlayer(name,guest){const p=mkPlayer(name,guest);state.players.push(p);save();return p;}
+function addPlayerFromInput(elId){const el=document.getElementById(elId);const n=el.value.trim();if(!n)return;addPlayer(n,false);el.value='';render();setTimeout(()=>{const x=document.getElementById(elId);if(x)x.focus();},0);}
+function removePlayer(id){const played=activeMatches().some(m=>m.a.includes(id)||m.b.includes(id));if(played){if(!confirm('לשחקן יש משחקים. להסיר בכל זאת? המשחקים יישארו עם השם.'))return;}state.players=state.players.filter(p=>p.id!==id);ui.teamA=ui.teamA.filter(x=>x!==id);ui.teamB=ui.teamB.filter(x=>x!==id);save();render();}
 
 function openSheet(html){document.getElementById('sheetBody').innerHTML=html;document.getElementById('sheetBack').classList.add('on');document.getElementById('sheet').classList.add('on');}
 function closeSheet(){document.getElementById('sheetBack').classList.remove('on');document.getElementById('sheet').classList.remove('on');}
@@ -746,63 +757,42 @@ let toastT;function toast(msg){const t=document.getElementById('toast');t.textCo
 /* ---------- נתונים ---------- */
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fifa-league-data.json';a.click();}
 function importPrompt(){openSheet(`<b style="font-size:17px">ייבוא נתונים</b><p class="small muted">הדביקו JSON שיוצא. זה יחליף את הנתונים במכשיר.</p><textarea id="impTxt" placeholder="{...}"></textarea><button class="btn" style="margin-top:10px" onclick="doImport()">ייבוא</button>`);}
-function doImport(){try{const d=JSON.parse(document.getElementById('impTxt').value);if(!d.players)throw 0;state=Object.assign({players:[],matches:[],deleted:[],v:2},d);save();closeSheet();render();toast('יובא ✓');}catch(e){toast('JSON לא תקין');}}
-function wipe(){if(!confirm('למחוק את כל השחקנים והמשחקים במכשיר?'))return;state={players:[],matches:[],deleted:[],v:2};ui.teamA=[];ui.teamB=[];ui.sa=0;ui.sb=0;save();render();toast('נמחק');}
+function doImport(){try{const d=JSON.parse(document.getElementById('impTxt').value);if(!d.players)throw 0;state=Object.assign({players:[],matches:[],deleted:[],control:{open:true,pinHash:null,updatedAt:0},v:3},d);save();closeSheet();render();toast('יובא ✓');}catch(e){toast('JSON לא תקין');}}
+function wipe(){if(!confirm('למחוק את כל השחקנים והמשחקים? הסגל ייטען מחדש.'))return;state={players:[],matches:[],deleted:[],control:{open:true,pinHash:null,updatedAt:0},v:3};ui.teamA=[];ui.teamB=[];ui.sa=0;ui.sb=0;ensureSquad();render();toast('אופס · הסגל נטען מחדש');}
 function seedDemo(){
-  if(state.matches.length&&!confirm('להוסיף שחקני ומשחקי דוגמה על הנתונים הקיימים?'))return;
-  const names=['רן','עומר','נועם','דני','יעל'];
-  const ids=names.map(n=>{let p=state.players.find(x=>x.name===n);if(!p)p=addPlayer(n);return p.id;});
-  const [ran,omer,noam,dani,yael]=ids;
+  if(state.matches.length&&!confirm('להוסיף משחקי דוגמה על הנתונים הקיימים?'))return;
+  ensureSquad();
+  const id=n=>{const p=state.players.find(x=>x.name===n&&!x.guest);return p?p.id:null;};
+  const ran=id('רן'),dudi=id('דודי'),rafa=id('רפא'),beitan=id('ביתן'),bar=id('בר');
   const R=(a,b,sa,sb,mode,daysAgo,tech)=>({id:uid(),ts:now()-daysAgo*86400000-Math.floor(Math.random()*3600000),mode,a,b,sa,sb,tech:!!tech});
   const demo=[
-    R([ran,omer],[noam,dani],3,1,'2v2',9),
-    R([ran,noam],[omer,dani],2,2,'2v2',8),
-    R([ran,dani],[omer,noam],4,0,'2v2',8),
-    R([ran],[omer],2,1,'1v1',7),
-    R([omer,noam],[ran,yael],1,3,'2v2',6),
-    R([ran,omer],[dani,yael],5,1,'2v2',5),
-    R([noam],[dani],3,3,'1v1',5),
-    R([ran,omer],[noam,yael],3,0,'2v2',4,true),
-    R([ran,noam],[omer,yael],2,0,'2v2',4),
-    R([dani,yael],[ran,omer],2,1,'2v2',3),
-    R([omer],[noam],4,2,'1v1',2),
-    R([ran,yael],[noam,dani],3,2,'2v2',1),
-    R([dani,omer],[ran,noam],3,0,'2v2',1,true),
-    R([ran,omer],[noam,dani],1,0,'2v2',0),
-  ];
+    R([ran,dudi],[rafa,beitan],3,1,'2v2',9),
+    R([ran,rafa],[dudi,beitan],2,2,'2v2',8),
+    R([ran,beitan],[dudi,rafa],4,0,'2v2',8),
+    R([ran],[dudi],2,1,'1v1',7),
+    R([dudi,rafa],[ran,bar],1,3,'2v2',6),
+    R([ran,dudi],[beitan,bar],5,1,'2v2',5),
+    R([rafa],[beitan],3,3,'1v1',5),
+    R([ran,dudi],[rafa,bar],3,0,'2v2',4,true),
+    R([ran,rafa],[dudi,bar],2,0,'2v2',4),
+    R([beitan,bar],[ran,dudi],2,1,'2v2',3),
+    R([dudi],[rafa],4,2,'1v1',2),
+    R([ran,bar],[rafa,beitan],3,2,'2v2',1),
+    R([beitan,dudi],[ran,rafa],3,0,'2v2',1,true),
+    R([ran,dudi],[rafa,beitan],1,0,'2v2',0),
+  ].filter(m=>m.a.every(Boolean)&&m.b.every(Boolean));
   state.matches.push(...demo);save();render();toast('נטענו נתוני דוגמה ✓');
 }
 
 /* ============================================================
-   סנכרון (Supabase Realtime, אופציונלי)
+   סנכרון (Supabase Realtime)
 ============================================================ */
 let SYNC={client:null,channel:null,ok:false,applyingRemote:false};
 function getCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'null');}catch(e){return null;}}
 function setCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify(c));}
 function clearCfg(){localStorage.removeItem(CFG_KEY);}
-
-function openSyncSheet(){
-  const c=getCfg()||{};
-  openSheet(`<b style="font-size:17px">הגדרת סנכרון חי</b>
-    <p class="small muted" style="margin:6px 0 12px">הדביקו את כתובת ה-<b>Project URL</b> ואת מפתח ה-<b>anon</b> מ-Supabase (ראו קובץ ההסבר). בחרו קוד חדר שכולם ישתפו.</p>
-    <label class="small muted">Project URL</label>
-    <input id="s_url" placeholder="https://xxxx.supabase.co" value="${escapeHtml(c.url||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left">
-    <label class="small muted">anon key</label>
-    <input id="s_key" placeholder="eyJ…" value="${escapeHtml(c.anon||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left">
-    <label class="small muted">קוד חדר (משותף לכולם)</label>
-    <input id="s_room" placeholder="למשל friday-crew" value="${escapeHtml(c.room||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left">
-    <button class="btn" style="margin-top:6px" onclick="saveSync()">חיבור</button>
-    <p class="small muted" style="margin-top:10px">המכשיר הראשון "זורע" את החדר בנתונים שלו, והאחרים מתמזגים.</p>`);
-}
-function saveSync(){
-  const url=document.getElementById('s_url').value.trim();
-  const anon=document.getElementById('s_key').value.trim();
-  const room=(document.getElementById('s_room').value.trim()||'main').replace(/[^a-zA-Z0-9_-]/g,'-');
-  if(!url||!anon||!room)return toast('צריך URL, מפתח וקוד חדר');
-  setCfg({url,anon,room});closeSheet();initSync(true);render();
-}
-function disconnectSync(){try{if(SYNC.channel)SYNC.channel.unsubscribe();}catch(e){}SYNC={client:null,channel:null,ok:false,applyingRemote:false};clearCfg();render();toast('סנכרון כבוי');}
-
+function openSyncSheet(){const c=getCfg()||{};openSheet(`<b style="font-size:17px">הגדרת סנכרון ידני</b><p class="small muted" style="margin:6px 0 12px">בדרך כלל אין צורך — הסנכרון מובנה. זה למקרה חירום.</p><input id="s_url" placeholder="https://xxxx.supabase.co" value="${escapeHtml(c.url||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left"><input id="s_key" placeholder="anon key eyJ…" value="${escapeHtml(c.anon||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left"><input id="s_room" placeholder="קוד חדר" value="${escapeHtml(c.room||'')}" style="margin:4px 0 10px;direction:ltr;text-align:left"><button class="btn" onclick="saveSync()">חיבור</button>`);}
+function saveSync(){const url=document.getElementById('s_url').value.trim();const anon=document.getElementById('s_key').value.trim();const room=(document.getElementById('s_room').value.trim()||'main').replace(/[^a-zA-Z0-9_-]/g,'-');if(!url||!anon||!room)return toast('צריך URL, מפתח וקוד חדר');setCfg({url,anon,room});closeSheet();initSync(true);render();}
 function initSync(announce){
   const cfg=getCfg();if(!cfg)return;
   if(!window.supabase||!window.supabase.createClient){SYNC.ok=false;updateSyncDot();if(announce)toast('אין חיבור — ספריית הסנכרון לא נטענה');return;}
@@ -815,9 +805,7 @@ function initSync(announce){
       SYNC.ok=true;updateSyncDot();
     });
     SYNC.channel=SYNC.client.channel('fifa-'+cfg.room)
-      .on('postgres_changes',{event:'*',schema:'public',table:'fifa_rooms',filter:'room=eq.'+cfg.room},payload=>{
-        if(payload.new&&payload.new.data)mergeRemote(payload.new.data);
-      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'fifa_rooms',filter:'room=eq.'+cfg.room},payload=>{if(payload.new&&payload.new.data)mergeRemote(payload.new.data);})
       .subscribe(status=>{SYNC.ok=(status==='SUBSCRIBED');updateSyncDot();});
   }catch(e){SYNC.ok=false;updateSyncDot();if(announce)toast('שגיאת סנכרון');}
 }
@@ -828,19 +816,22 @@ function mergeRemote(remote){
   const mmap={};state.matches.forEach(m=>mmap[m.id]=m);rm.forEach(m=>{if(!mmap[m.id])mmap[m.id]=m;});
   const del=Array.from(new Set([...(state.deleted||[]),...rd]));
   state.players=Object.values(pmap);state.matches=Object.values(mmap);state.deleted=del;
+  if(remote.control&&(remote.control.updatedAt||0)>((state.control&&state.control.updatedAt)||0))state.control=remote.control;
   persist();
   const after=JSON.stringify(state);
   if(after!==before){SYNC.applyingRemote=true;render();SYNC.applyingRemote=false;}
   if((rp.length!==state.players.length)||(rm.length!==state.matches.length)||(rd.length!==del.length))pushState();
 }
-function pushState(){if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;try{SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted},updated_at:new Date().toISOString()}).then(()=>{});}catch(e){}}
+function pushState(){if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;try{SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()}).then(()=>{});}catch(e){}}
 function syncPush(){if(SYNC.applyingRemote)return;if(SYNC.client)pushState();}
 function updateSyncDot(){const d=document.getElementById('syncDot');if(!d)return;const cfg=getCfg();d.className='syncdot'+(cfg?(SYNC.ok?' on':' err'):'');d.title=cfg?(SYNC.ok?'סנכרון חי':'סנכרון מתחבר'):'סנכרון כבוי';}
 
 /* ============================================================
    הפעלה
 ============================================================ */
-load();render();
+load();
+if(syncIsEmbedded()&&!getCfg()){setCfg({url:EMBEDDED_SYNC.url,anon:EMBEDDED_SYNC.anon,room:EMBEDDED_SYNC.room||'main'});}
+render();
 if(getCfg())initSync(false);
 </script>
 </body>
