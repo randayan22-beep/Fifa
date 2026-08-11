@@ -312,7 +312,7 @@ function movMultiplier(gd,ratingDiffWinner){if(gd===0)return 1;return Math.log(M
 function computeStats(players,matches){
   const ids=players.map(p=>p.id);
   const R={},S={};
-  ids.forEach(id=>{R[id]=ELO_START;S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0},'2v2':{w:0,d:0,l:0,g:0}},lr:{w:0,d:0,l:0,g:0},techW:0,techL:0,closeG:0,closeW:0};});
+  ids.forEach(id=>{R[id]=ELO_START;S[id]={id,games:0,w:0,d:0,l:0,gf:0,ga:0,history:[{t:0,r:ELO_START}],peak:ELO_START,resultsChrono:[],curStreak:0,curType:'',longestW:0,longestUnb:0,longestL:0,partners:{},opps:{},big:null,mode:{'1v1':{w:0,d:0,l:0,g:0,gf:0,ga:0},'2v2':{w:0,d:0,l:0,g:0,gf:0,ga:0}},lr:{w:0,d:0,l:0,g:0},techW:0,techL:0,closeG:0,closeW:0,cleanSheets:0,scoreFreq:{}};});
   const chem={};
   const sorted=matches.slice().sort((x,y)=>(x.ts-y.ts)||(x.id<y.id?-1:1));
   for(const m of sorted){
@@ -328,17 +328,19 @@ function computeStats(players,matches){
     const dA=ELO_K*mov*(sA-ea),dB=ELO_K*mov*(sB-eb);
     applyTeam(m.a,m.b,dA,m.sa,m.sb,sA,m);
     applyTeam(m.b,m.a,dB,m.sb,m.sa,sB,m);
-    if(m.mode==='2v2'){recordChem(m.a,sA);recordChem(m.b,sB);}
+    if(m.mode==='2v2'){recordChem(m.a,sA,m.sa,m.sb);recordChem(m.b,sB,m.sb,m.sa);}
   }
-  function recordChem(team,res){if(team.length<2)return;for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++){const k=pairKey(team[i],team[j]);const c=chem[k]||(chem[k]={a:team[i],b:team[j],g:0,w:0,d:0,l:0});c.g++;if(res===1)c.w++;else if(res===0.5)c.d++;else c.l++;}}
+  function recordChem(team,res,gf,ga){if(team.length<2)return;for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++){const k=pairKey(team[i],team[j]);const c=chem[k]||(chem[k]={a:team[i],b:team[j],g:0,w:0,d:0,l:0,gf:0,ga:0});c.g++;c.gf+=gf;c.ga+=ga;if(res===1)c.w++;else if(res===0.5)c.d++;else c.l++;}}
   function applyTeam(team,opp,delta,gf,ga,res,m){
     const gd=Math.abs(m.sa-m.sb);
     for(const id of team){
-      R[id]+=delta;const st=S[id];st.games++;st.gf+=gf;st.ga+=ga;st.mode[m.mode].g++;
+      R[id]+=delta;const st=S[id];st.games++;st.gf+=gf;st.ga+=ga;st.mode[m.mode].g++;st.mode[m.mode].gf+=gf;st.mode[m.mode].ga+=ga;
       if(res===1){st.w++;st.mode[m.mode].w++;if(m.tech)st.techW++;if(m.lr)st.lr.w++;}
       else if(res===0.5){st.d++;st.mode[m.mode].d++;if(m.lr)st.lr.d++;}
       else {st.l++;st.mode[m.mode].l++;if(m.tech)st.techL++;if(m.lr)st.lr.l++;}
       if(m.lr)st.lr.g++;
+      if(ga===0)st.cleanSheets++;
+      {const sk=gf+'-'+ga;st.scoreFreq[sk]=(st.scoreFreq[sk]||0)+1;}
       if(gd===1){st.closeG++;if(res===1)st.closeW++;}
       st.history.push({t:m.ts,r:R[id]});if(R[id]>st.peak)st.peak=R[id];
       const rc=res===1?'W':res===0.5?'D':'L';st.resultsChrono.push(rc);
@@ -358,6 +360,8 @@ function computeStats(players,matches){
     st.winpct=st.games?(st.w/st.games*100):0;st.ppg=st.games?((st.w*3+st.d)/st.games):0;
     st.gpg=st.games?(st.gf/st.games):0;st.gapg=st.games?(st.ga/st.games):0;
     st.clutchPct=st.closeG?(st.closeW/st.closeG*100):0;
+    st.avgMargin=st.games?(st.gd/st.games):0;
+    let fk=null,fn=0;for(const k in st.scoreFreq){if(st.scoreFreq[k]>fn){fn=st.scoreFreq[k];fk=k;}}st.favScore=fk;st.favScoreN=fn;
     const h=st.history;st.lastDelta=h.length>1?Math.round(h[h.length-1].r-h[h.length-2].r):0;
     st.bestPartner=pickRel(st.partners,true);st.worstPartner=pickRel(st.partners,false);
     st.nemesis=pickRel(st.opps,false);st.bunny=pickRel(st.opps,true);
@@ -459,7 +463,7 @@ function viewPlay(){
   const commonScores=['0-0','1-0','2-1','1-1','2-0','2-2','3-0','3-1','3-2','3-3'];
   const cur=ui.sa+'-'+ui.sb;
   const involvesGuest=[...ui.teamA,...ui.teamB].some(id=>isGuest(id));
-  const gd=Math.abs(ui.sa-ui.sb);const isTech=gd>=3;
+  const techThresh=ui.lr?4:3;const gd=Math.abs(ui.sa-ui.sb);const isTech=gd>=techThresh;
   const modeTxt=balanced?(nA===2?'2 נגד 2':'1 נגד 1'):'';
   return `
   <h2 class="section"><span>משחק חדש</span>${lockPill()}</h2>
@@ -490,7 +494,7 @@ function viewPlay(){
 
     <div class="tagrow">
       <button class="tagtoggle ${ui.lr?'on':''}" onclick="toggleLR()">🎯 לונג ריינג׳${ui.lr?' ✓':''}</button>
-      <span class="techauto ${isTech?'on':''}">⚖️ טכני${isTech?' · פער '+gd:' (אוטומטי בפער 3+)'}</span>
+      <span class="techauto ${isTech?'on':''}">⚖️ טכני${isTech?' · פער '+gd:' (אוטומטי בפער '+techThresh+'+)'}</span>
     </div>
 
     ${involvesGuest?`<div class="guestnote">🎽 משחק עם אורח — לא נספר בדירוג ובסטטיסטיקות</div>`:''}
@@ -545,13 +549,10 @@ function tileDown(ev,id){
 function recentMini(){const ms=activeMatches().slice().sort((a,b)=>b.ts-a.ts).slice(0,3);if(!ms.length)return '';return `<h2 class="section"><span>זה עתה שוחק</span></h2><div class="card divlist">${ms.map(m=>matchRow(m)).join('')}</div>`;}
 function onboard(){
   return `<div class="card" style="margin-top:18px">
-    <div class="empty"><div class="big">⚽</div><div style="font-size:18px;font-weight:900;color:var(--txt)">הסגל שלנו</div><div class="muted" style="margin:6px 0">טענו את הסגל בלחיצה, או הוסיפו ידנית.</div></div>
-    <button class="btn" onclick="loadSquad()">טען את הסגל · רן, דודי, רפא, ביתן, בר, גוטמן, איתמר + אורח</button>
-    <div class="row" style="margin-top:12px"><input id="obName" placeholder="הוספת שחקן ידנית" onkeydown="if(event.key==='Enter')addPlayerFromInput('obName')"><button class="btn sec" style="width:auto;padding:14px 18px" onclick="addPlayerFromInput('obName')">הוסף</button></div>
-    <div style="margin-top:6px">${state.players.map(playerChipRow).join('')}</div>
+    <div class="empty"><div class="big">⚽</div><div style="font-size:18px;font-weight:900;color:var(--txt)">מתחברים לליגה…</div><div class="muted" style="margin:6px 0">אם הסגל לא נטען אוטומטית תוך כמה שניות, הקישו כאן.</div></div>
+    <button class="btn" onclick="loadSquad()">טען את הסגל</button>
   </div>`;
 }
-function playerChipRow(p){return `<div class="row" style="padding:8px 2px;border-bottom:1px solid var(--line)">${avatar(p.id,'sm')}<b style="flex:1">${escapeHtml(p.name)} ${p.guest?'<span class="friendlybadge">אורח</span>':''}</b><button class="linkish" onclick="removePlayer('${p.id}')">הסר</button></div>`;}
 
 /* ---------- דירוג ---------- */
 function viewRanks(){
@@ -570,7 +571,8 @@ function viewRanks(){
     <button class="${modeSel==='1v1'?'act':''}" onclick="setRanksMode('1v1')">1 נגד 1</button>
     <button class="${modeSel==='lr'?'act':''}" onclick="setRanksMode('lr')">🎯 לונג ריינג׳</button>
   </div>
-  <div class="card divlist" style="margin-top:10px">${list.length?list.map((s,i)=>lbRow(s,i,modeSel)).join(''):`<div class="empty small">אין עדיין משחקים במצב הזה.</div>`}</div>
+  <div class="small muted center" style="margin-top:8px">👆 הקישו על שחקן כדי לראות את כל הנתונים שלו</div>
+  <div class="card divlist" style="margin-top:8px">${list.length?list.map((s,i)=>lbRow(s,i,modeSel)).join(''):`<div class="empty small">אין עדיין משחקים במצב הזה.</div>`}</div>
   ${unranked.length?`<h2 class="section"><span>עדיין לא מדורגים</span></h2><div class="card">${unranked.map(s=>`<div class="row" style="padding:7px 2px">${avatar(s.id,'sm')}<b style="flex:1">${escapeHtml(pname(s.id))}</b><span class="muted small">0 משחקים</span></div>`).join('')}</div>`:''}
   <div class="small muted center" style="margin-top:12px">הדירוג הוא ציון כישרון (Elo). הוא עולה יותר על ניצחון מול קבוצה חזקה ובהפרש גדול — ולכן אומר משהו עליך גם כשמתחלפים שותפים. משחקי אורח לא נספרים.</div>`;
 }
@@ -630,7 +632,7 @@ function viewRecords(){
 function chemistryCard(){
   const duos=STATS.chem.filter(c=>c.g>=2).sort((a,b)=>b.rate-a.rate||b.g-a.g);
   if(!duos.length)return '';
-  return `<h2 class="section"><span>כימיה זוגית (2 נגד 2)</span></h2><div class="card">${duos.map(c=>{const pct=Math.round(c.rate*100);return `<div class="h2h-row"><div style="display:flex">${avatar(c.a,'sm')}<span style="margin-right:-8px">${avatar(c.b,'sm')}</span></div><div style="flex:1"><b>${escapeHtml(pname(c.a))} + ${escapeHtml(pname(c.b))}</b><div class="small muted">${c.g} משחקים</div></div><div style="width:120px"><div class="bar"><i style="width:${pct}%;background:var(--win)"></i><i style="width:${100-pct}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${c.w}-${c.d}-${c.l} · ${pct}%</div></div></div>`;}).join('')}</div>`;
+  return `<h2 class="section"><span>כימיה זוגית (2 נגד 2)</span></h2><div class="card">${duos.map(c=>{const pct=Math.round(c.rate*100);return `<div class="h2h-row"><div style="display:flex">${avatar(c.a,'sm')}<span style="margin-right:-8px">${avatar(c.b,'sm')}</span></div><div style="flex:1"><b>${escapeHtml(pname(c.a))} + ${escapeHtml(pname(c.b))}</b><div class="small muted">${c.g} משחקים · ${c.gf||0} שערים כזוג</div></div><div style="width:120px"><div class="bar"><i style="width:${pct}%;background:var(--win)"></i><i style="width:${100-pct}%;background:var(--loss)"></i></div><div class="small muted center" style="margin-top:3px" dir="ltr">${c.w}-${c.d}-${c.l} · ${pct}%</div></div></div>`;}).join('')}</div>`;
 }
 
 /* ---------- פרופיל ---------- */
@@ -663,7 +665,13 @@ function viewProfile(){
     <div class="kv"><span class="muted">רצף הפסדים הכי ארוך</span><b>${s.longestL}</b></div>
     <div class="kv"><span class="muted">נקודות למשחק</span><b>${s.ppg.toFixed(2)}</b></div>
     <div class="kv"><span class="muted">שערים / ספיגות למשחק</span><b>${s.gpg.toFixed(1)} / ${s.gapg.toFixed(1)}</b></div>
+    <div class="kv"><span class="muted">⚽ שערים כיחיד (1 נגד 1)</span><b>${s.mode['1v1'].gf} ב-${s.mode['1v1'].g} מש׳</b></div>
+    <div class="kv"><span class="muted">⚽ שערים כזוג (2 נגד 2)</span><b>${s.mode['2v2'].gf} ב-${s.mode['2v2'].g} מש׳</b></div>
+    <div class="kv"><span class="muted">🧤 משחקים בשער נקי (0 ספיגות)</span><b>${s.cleanSheets}</b></div>
+    <div class="kv"><span class="muted">הפרש שערים ממוצע למשחק</span><b>${s.avgMargin>0?'+':''}${s.avgMargin.toFixed(2)}</b></div>
+    <div class="kv"><span class="muted">תוצאה אופיינית (שלו–יריב)</span><b>${s.favScore?s.favScore.replace('-','–')+' ×'+s.favScoreN:'—'}</b></div>
     <div class="kv"><span class="muted">נצחון במשחקים צמודים (הכרעה בשער)</span><b>${s.closeG?Math.round(s.clutchPct)+'% ('+s.closeW+'/'+s.closeG+')':'—'}</b></div>
+    <div class="kv"><span class="muted">⚖️ טכני: הכתיב / ספג</span><b>${s.techW} / ${s.techL}</b></div>
     <div class="kv"><span class="muted">מאזן 2 נגד 2</span><b>${s.mode['2v2'].w}-${s.mode['2v2'].d}-${s.mode['2v2'].l}</b></div>
     <div class="kv"><span class="muted">מאזן 1 נגד 1</span><b>${s.mode['1v1'].w}-${s.mode['1v1'].d}-${s.mode['1v1'].l}</b></div>
     <div class="kv"><span class="muted">🎯 מאזן לונג ריינג׳</span><b>${s.lr.w}-${s.lr.d}-${s.lr.l}</b></div>
@@ -695,31 +703,14 @@ function viewMore(){
     <p class="small muted" style="margin-top:8px">${hasPin?'רק מי שיודע את סיסמת המנהל יכול לפתוח/לנעול. כשנעול — אף אחד לא יכול לשמור משחקים.':'קבע סיסמת מנהל, ואז ההזנות ננעלות עד שתפתח אותן בערב הפיפא — כדי למנוע הזנות מזויפות בימים אחרים. הסיסמה לא נשמרת ב-HTML.'}</p>
   </div>
 
-  <h2 class="section"><span>שחקנים</span></h2>
+  <h2 class="section"><span>מידע</span></h2>
   <div class="card">
-    <div class="row"><input id="mName" placeholder="הוסף שחקן" onkeydown="if(event.key==='Enter')addPlayerFromInput('mName')"><button class="btn" style="width:auto;padding:14px 18px" onclick="addPlayerFromInput('mName')">הוסף</button></div>
-    <button class="btn sec" style="margin-top:10px" onclick="loadSquad()">טען/השלם את הסגל</button>
-    <div id="plist" style="margin-top:10px">${state.players.map(playerChipRow).join('')||'<div class="muted small">אין שחקנים.</div>'}</div>
-  </div>
-
-  <h2 class="section"><span>סנכרון בין מכשירים</span></h2>
-  <div class="card">
-    <div class="between"><b>סנכרון חי</b><span class="pill" style="${cfg?'color:var(--accent)':'color:var(--dim)'}">${cfg?(SYNC.ok?'מחובר':'מתחבר…'):'כבוי'}</span></div>
-    ${syncIsEmbedded()?`
-      <p class="small muted" style="margin:8px 0 12px">הסנכרון מובנה — כל מי שפותח את הקישור מתחבר אוטומטית לאותה ליגה. אין מה להגדיר. 🎉</p>
-      <div class="kv"><span class="muted">חדר</span><b>${escapeHtml((cfg&&cfg.room)||EMBEDDED_SYNC.room)}</b></div>
-      <div class="kv"><span class="muted">סטטוס</span><b class="${SYNC.ok?'up':'down'}">${SYNC.ok?'חי ✓':'מתחבר…'}</b></div>
-    `:`<button class="btn" onclick="openSyncSheet()">הפעלת סנכרון (ידני)</button>`}
-  </div>
-
-  <h2 class="section"><span>נתונים</span></h2>
-  <div class="card">
+    <div class="kv"><span class="muted">שחקנים בסגל</span><b>${state.players.filter(p=>!p.guest).length}</b></div>
     <div class="kv"><span class="muted">משחקים</span><b>${activeMatches().length}</b></div>
-    <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="exportData()">ייצוא JSON</button><button class="btn sec" onclick="importPrompt()">ייבוא JSON</button></div>
-    <button class="btn sec" style="margin-top:10px" onclick="seedDemo()">טעינת נתוני דוגמה</button>
-    <button class="btn danger" style="margin-top:10px" onclick="wipe()">איפוס הכל (וטעינת הסגל מחדש)</button>
+    <div class="kv"><span class="muted">סנכרון</span><b class="${SYNC.ok?'up':'down'}">${cfg?(SYNC.ok?'חי ✓':'מתחבר…'):'כבוי'}</b></div>
+    <button class="btn sec" style="margin-top:12px" onclick="exportData()">גיבוי — ייצוא JSON</button>
   </div>
-  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · מסונכרן לכל החבר'ה.</div>`;
+  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · מסונכרן לכל החבר'ה.<br>עריכת סגל השחקנים נעשית ע"י המנהל בלבד.</div>`;
 }
 
 /* ============================================================
@@ -738,7 +729,7 @@ function saveMatch(){
   if(!(nA===nB&&(nA===1||nA===2)))return toast('בחרו מספר שווה בכל צד (1 או 2)');
   if(ui.teamA.some(id=>ui.teamB.includes(id)))return toast('שחקן נמצא בשתי הקבוצות');
   const mode=nA===2?'2v2':'1v1';
-  const tech=Math.abs(ui.sa-ui.sb)>=3;
+  const tech=Math.abs(ui.sa-ui.sb)>=(ui.lr?4:3);
   const m={id:uid(),ts:now(),mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:ui.sa,sb:ui.sb,tech,lr:!!ui.lr};
   state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast(tech?'נשמר ⚖️ טכני ✓':'נשמר ✓ — מוכן לריווש');render();
 }
