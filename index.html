@@ -263,7 +263,7 @@ const CFG_KEY='fifaLeague.sync.v2';
 const COLORS=['#39e08a','#4aa8ff','#ff7ac2','#ffcf5a','#b98bff','#ff8f5a','#5ce1c9','#ff6b6b','#8be04a','#67c0ff','#ffa1d1','#c0f05a'];
 const TECH_SCORE=3; // תוצאת ברירת מחדל לניצחון טכני: 3-0
 const SQUAD=['רן','דודי','רפא','ביתן','בר','גוטמן','איתמר'];
-const APP_VERSION='גרסה 9 · איחוד כפולים';
+const APP_VERSION='גרסה 10 · נעילת עריכה';
 
 /* ============================================================
    ★★ הגדרת סנכרון מובנית — כולם מחוברים אוטומטית ★★
@@ -637,7 +637,7 @@ function matchRow(m,withActions){
   return `<div class="match">
     <div class="side"><div class="who ${aWin?'winbold':'losedim'}">${teamAvatars(m.a)} ${escapeHtml(teamNames(m.a))}</div><div class="meta">${tags}${m.mode==='2v2'?'2נ2':'1נ1'}${withActions?` · ${when}`:''}</div></div>
     <div class="sc ${m.tech?'techsc':''}"><span class="${aWin?'':'muted'}">${m.sa}</span><span class="muted">–</span><span class="${bWin?'':'muted'}">${m.sb}</span></div>
-    <div class="side left"><div class="who ${bWin?'winbold':'losedim'}">${escapeHtml(teamNames(m.b))} ${teamAvatars(m.b)}</div>${withActions?`<div class="meta"><button class="linkish" onclick="editMatch('${m.id}')">עריכה</button> · <button class="linkish" onclick="delMatch('${m.id}')">מחיקה</button></div>`:''}</div>
+    <div class="side left"><div class="who ${bWin?'winbold':'losedim'}">${escapeHtml(teamNames(m.b))} ${teamAvatars(m.b)}</div>${withActions?(entriesOpen()?`<div class="meta"><button class="linkish" onclick="editMatch('${m.id}')">עריכה</button> · <button class="linkish" onclick="delMatch('${m.id}')">מחיקה</button></div>`:`<div class="meta muted">🔒 נעול</div>`):''}</div>
   </div>`;
 }
 function teamAvatars(team){return team.map(id=>avatar(id,'sm')).join('');}
@@ -730,7 +730,9 @@ function viewMore(){
     <div class="kv"><span class="muted">משחקים</span><b>${activeMatches().length}</b></div>
     <div class="kv"><span class="muted">סנכרון</span><b class="${SYNC.ok?'up':'down'}">${!(window.supabase&&window.supabase.createClient)?'ספריה לא נטענה':cfg?(SYNC.ok?'חי ✓':'מתחבר…'):'כבוי'}</b></div>
     ${SYNC.lastErr?`<div class="kv"><span class="muted">שגיאת סנכרון</span><b class="down" style="direction:ltr;font-size:11px">${escapeHtml(String(SYNC.lastErr).slice(0,80))}</b></div>`:''}
-    <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="syncTest()">🔎 בדיקת סנכרון</button><button class="btn sec" onclick="exportData()">גיבוי JSON</button></div>
+    <button class="btn" style="margin-top:12px" onclick="hardReload()">⤓ עדכן לגרסה האחרונה</button>
+    <div class="grid2" style="margin-top:10px"><button class="btn sec" onclick="syncNow()">🔄 סנכרן עכשיו</button><button class="btn sec" onclick="syncTest()">🔎 בדיקת סנכרון</button></div>
+    <button class="btn sec" style="margin-top:10px" onclick="exportData()">גיבוי — ייצוא JSON</button>
   </div>
   <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · ${APP_VERSION}<br>עריכת סגל השחקנים נעשית ע"י המנהל בלבד.</div>`;
 }
@@ -755,8 +757,8 @@ function saveMatch(){
   const m={id:uid(),ts:now(),mode,a:ui.teamA.slice(),b:ui.teamB.slice(),sa:ui.sa,sb:ui.sb,tech,lr:!!ui.lr};
   state.matches.push(m);save();ui.sa=0;ui.sb=0;ui.lastReused=true;toast(tech?'נשמר ⚖️ טכני ✓':'נשמר ✓ — מוכן לריווש');render();
 }
-function delMatch(id){if(!confirm('למחוק את המשחק?'))return;if(!state.deleted.includes(id))state.deleted.push(id);save();render();toast('נמחק');}
-function editMatch(id){const m=state.matches.find(x=>x.id===id);if(!m)return;ui.teamA=m.a.slice();ui.teamB=m.b.slice();ui.sa=m.sa;ui.sb=m.sb;ui.lr=!!m.lr;if(!state.deleted.includes(id))state.deleted.push(id);save();go('play');toast('נטען לעריכה — עדכנו ושמרו');}
+function delMatch(id){if(!entriesOpen()){openLockSheet();return toast('נעול — מחיקה מותרת רק כשהמנהל פותח הזנות');}if(!confirm('למחוק את המשחק?'))return;if(!state.deleted.includes(id))state.deleted.push(id);save();render();toast('נמחק');}
+function editMatch(id){if(!entriesOpen()){openLockSheet();return toast('נעול — עריכה מותרת רק כשהמנהל פותח הזנות');}const m=state.matches.find(x=>x.id===id);if(!m)return;ui.teamA=m.a.slice();ui.teamB=m.b.slice();ui.sa=m.sa;ui.sb=m.sb;ui.lr=!!m.lr;if(!state.deleted.includes(id))state.deleted.push(id);save();go('play');toast('נטען לעריכה — עדכנו ושמרו');}
 
 function addPlayer(name,guest){const p=mkPlayer(name,guest);state.players.push(p);save();return p;}
 function addPlayerFromInput(elId){const el=document.getElementById(elId);const n=el.value.trim();if(!n)return;addPlayer(n,false);el.value='';render();setTimeout(()=>{const x=document.getElementById(elId);if(x)x.focus();},0);}
@@ -830,6 +832,8 @@ function pullRemote(seed){
 }
 function startPolling(){stopPolling();SYNC.poll=setInterval(()=>pullRemote(false),4000);}
 function stopPolling(){if(SYNC.poll){clearInterval(SYNC.poll);SYNC.poll=null;}}
+function syncNow(){if(SYNC.client){pullRemote(false);toast('מסנכרן…');}else{toast('סנכרון לא פעיל');}}
+function hardReload(){try{location.href=location.pathname+'?v='+Date.now();}catch(e){location.reload();}}
 function classifyErr(e){const s=(e&&(e.message||e.code)||String(e)||'');if(/Failed to fetch|NetworkError|fetch|ERR_|CORS|network/i.test(s))return 'network';if(/row-level security|permission|not authoriz|RLS|policy|401|403/i.test(s))return 'rls';if(/does not exist|schema cache|Could not find the table|relation/i.test(s))return 'notable';return 'other';}
 async function syncTest(){
   const cfg=getCfg();
