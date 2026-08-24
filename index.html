@@ -708,7 +708,8 @@ function viewMore(){
     <div class="kv"><span class="muted">שחקנים בסגל</span><b>${state.players.filter(p=>!p.guest).length}</b></div>
     <div class="kv"><span class="muted">משחקים</span><b>${activeMatches().length}</b></div>
     <div class="kv"><span class="muted">סנכרון</span><b class="${SYNC.ok?'up':'down'}">${cfg?(SYNC.ok?'חי ✓':'מתחבר…'):'כבוי'}</b></div>
-    <button class="btn sec" style="margin-top:12px" onclick="exportData()">גיבוי — ייצוא JSON</button>
+    ${SYNC.lastErr?`<div class="kv"><span class="muted">שגיאת סנכרון</span><b class="down" style="direction:ltr;font-size:11px">${escapeHtml(String(SYNC.lastErr).slice(0,60))}</b></div>`:''}
+    <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="syncTest()">🔎 בדיקת סנכרון</button><button class="btn sec" onclick="exportData()">גיבוי JSON</button></div>
   </div>
   <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · מסונכרן לכל החבר'ה.<br>עריכת סגל השחקנים נעשית ע"י המנהל בלבד.</div>`;
 }
@@ -777,7 +778,7 @@ function seedDemo(){
 /* ============================================================
    סנכרון (Supabase Realtime)
 ============================================================ */
-let SYNC={client:null,channel:null,ok:false,applyingRemote:false};
+let SYNC={client:null,channel:null,ok:false,applyingRemote:false,poll:null,lastErr:null};
 function getCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'null');}catch(e){return null;}}
 function setCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify(c));}
 function clearCfg(){localStorage.removeItem(CFG_KEY);}
@@ -789,16 +790,38 @@ function initSync(announce){
   try{
     SYNC.client=window.supabase.createClient(cfg.url,cfg.anon);
     if(announce)toast('מתחבר…');
-    SYNC.client.from('fifa_rooms').select('data').eq('room',cfg.room).maybeSingle().then(({data,error})=>{
-      if(error){SYNC.ok=false;updateSyncDot();if(announce)toast('שגיאת חיבור — בדקו את הפרטים');return;}
-      if(data&&data.data)mergeRemote(data.data);else pushState();
-      if(!state.players.length){ensureSquad();render();} // חדר ריק לגמרי -> טוען את הסגל אוטומטית
-      SYNC.ok=true;updateSyncDot();
-    });
+    pullRemote(true);
     SYNC.channel=SYNC.client.channel('fifa-'+cfg.room)
       .on('postgres_changes',{event:'*',schema:'public',table:'fifa_rooms',filter:'room=eq.'+cfg.room},payload=>{if(payload.new&&payload.new.data)mergeRemote(payload.new.data);})
-      .subscribe(status=>{SYNC.ok=(status==='SUBSCRIBED');updateSyncDot();});
-  }catch(e){SYNC.ok=false;updateSyncDot();if(announce)toast('שגיאת סנכרון');}
+      .subscribe(status=>{if(status==='SUBSCRIBED'){SYNC.ok=true;updateSyncDot();}});
+    startPolling(); // גיבוי ל-Realtime: מושך עדכונים כל כמה שניות
+  }catch(e){SYNC.ok=false;SYNC.lastErr=String(e&&e.message||e);updateSyncDot();if(announce)toast('שגיאת סנכרון');}
+}
+function pullRemote(seed){
+  if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;
+  SYNC.client.from('fifa_rooms').select('data').eq('room',cfg.room).maybeSingle().then(({data,error})=>{
+    if(error){SYNC.ok=false;SYNC.lastErr=error.message||error.code||JSON.stringify(error);updateSyncDot();return;}
+    SYNC.lastErr=null;
+    if(data&&data.data)mergeRemote(data.data);else if(seed)pushState();
+    if(seed&&!state.players.length){ensureSquad();render();}
+    SYNC.ok=true;updateSyncDot();
+  },err=>{SYNC.ok=false;SYNC.lastErr=String(err&&err.message||err);updateSyncDot();});
+}
+function startPolling(){stopPolling();SYNC.poll=setInterval(()=>pullRemote(false),4000);}
+function stopPolling(){if(SYNC.poll){clearInterval(SYNC.poll);SYNC.poll=null;}}
+async function syncTest(){
+  const cfg=getCfg();
+  if(!cfg||!SYNC.client){openSheet('<b>בדיקת סנכרון</b><p class="small muted">הסנכרון לא מאותחל.</p>');return;}
+  openSheet('<b>בדיקת סנכרון</b><p class="small muted">בודק כתיבה וקריאה מול Supabase…</p>');
+  let msg='';
+  try{
+    const wr=await SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()});
+    const rd=await SYNC.client.from('fifa_rooms').select('room,updated_at').eq('room',cfg.room).maybeSingle();
+    if(wr.error)msg='❌ כתיבה נכשלה:\n'+(wr.error.message||wr.error.code||JSON.stringify(wr.error))+'\n\nסביר שחסרה הרשאת RLS. הריצו מחדש את ה-SQL.';
+    else if(rd.error)msg='❌ קריאה נכשלה:\n'+(rd.error.message||rd.error.code||JSON.stringify(rd.error));
+    else msg='✅ תקין! כתיבה וקריאה עובדות.\nחדר: '+cfg.room+'\nעודכן: '+((rd.data&&rd.data.updated_at)||'—')+'\n\nאם בכל זאת לא מסתנכרן — ודאו שכולם על אותו קוד חדר ("'+cfg.room+'").';
+  }catch(e){msg='❌ שגיאה:\n'+String(e&&e.message||e);}
+  openSheet('<b>בדיקת סנכרון</b><pre class="small" style="direction:ltr;text-align:left;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px">'+escapeHtml(msg)+'</pre><button class="btn sec" style="margin-top:10px" onclick="closeSheet()">סגור</button>');
 }
 function mergeRemote(remote){
   const rp=remote.players||[],rm=remote.matches||[],rd=remote.deleted||[];
@@ -813,7 +836,7 @@ function mergeRemote(remote){
   if(after!==before){SYNC.applyingRemote=true;render();SYNC.applyingRemote=false;}
   if((rp.length!==state.players.length)||(rm.length!==state.matches.length)||(rd.length!==del.length))pushState();
 }
-function pushState(){if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;try{SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()}).then(()=>{});}catch(e){}}
+function pushState(){if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;try{SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()}).then(({error})=>{if(error){SYNC.ok=false;SYNC.lastErr=error.message||error.code||JSON.stringify(error);updateSyncDot();}else{SYNC.lastErr=null;}});}catch(e){SYNC.lastErr=String(e&&e.message||e);}}
 function syncPush(){if(SYNC.applyingRemote)return;if(SYNC.client)pushState();}
 function updateSyncDot(){const d=document.getElementById('syncDot');if(!d)return;const cfg=getCfg();d.className='syncdot'+(cfg?(SYNC.ok?' on':' err'):'');d.title=cfg?(SYNC.ok?'סנכרון חי':'סנכרון מתחבר'):'סנכרון כבוי';}
 
