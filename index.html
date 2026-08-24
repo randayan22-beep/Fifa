@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#0a0f0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -260,6 +263,7 @@ const CFG_KEY='fifaLeague.sync.v2';
 const COLORS=['#39e08a','#4aa8ff','#ff7ac2','#ffcf5a','#b98bff','#ff8f5a','#5ce1c9','#ff6b6b','#8be04a','#67c0ff','#ffa1d1','#c0f05a'];
 const TECH_SCORE=3; // תוצאת ברירת מחדל לניצחון טכני: 3-0
 const SQUAD=['רן','דודי','רפא','ביתן','בר','גוטמן','איתמר'];
+const APP_VERSION='גרסה 9 · איחוד כפולים';
 
 /* ============================================================
    ★★ הגדרת סנכרון מובנית — כולם מחוברים אוטומטית ★★
@@ -301,6 +305,23 @@ function ensureSquad(){
   if(changed)save();
 }
 function loadSquad(){ensureSquad();render();toast('הסגל נטען ✓');}
+/* איחוד שחקנים כפולים לפי שם (נוצר כשכמה מכשירים זרעו את הסגל בו-זמנית).
+   בוחר מזהה קנוני דטרמיניסטי (הקטן ביותר) כדי שכל המכשירים יתכנסו לאותו מצב,
+   ומעביר את כל המשחקים למזהה הקנוני. */
+function dedupePlayers(){
+  const groups={};
+  state.players.forEach(p=>{const k=(p.guest?'g:':'p:')+(p.name||'').trim();(groups[k]||(groups[k]=[])).push(p);});
+  const map={};let dup=false;const keepIds=new Set();
+  Object.values(groups).forEach(arr=>{
+    arr.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+    const canon=arr[0];keepIds.add(canon.id);
+    arr.forEach(p=>{map[p.id]=canon.id;if(p.id!==canon.id)dup=true;});
+  });
+  if(!dup)return false;
+  state.matches.forEach(m=>{m.a=m.a.map(id=>map[id]||id);m.b=m.b.map(id=>map[id]||id);});
+  state.players=state.players.filter(p=>keepIds.has(p.id));
+  return true;
+}
 
 /* ============================================================
    מנוע Elo + סטטיסטיקות (טהור)
@@ -707,11 +728,11 @@ function viewMore(){
   <div class="card">
     <div class="kv"><span class="muted">שחקנים בסגל</span><b>${state.players.filter(p=>!p.guest).length}</b></div>
     <div class="kv"><span class="muted">משחקים</span><b>${activeMatches().length}</b></div>
-    <div class="kv"><span class="muted">סנכרון</span><b class="${SYNC.ok?'up':'down'}">${cfg?(SYNC.ok?'חי ✓':'מתחבר…'):'כבוי'}</b></div>
-    ${SYNC.lastErr?`<div class="kv"><span class="muted">שגיאת סנכרון</span><b class="down" style="direction:ltr;font-size:11px">${escapeHtml(String(SYNC.lastErr).slice(0,60))}</b></div>`:''}
+    <div class="kv"><span class="muted">סנכרון</span><b class="${SYNC.ok?'up':'down'}">${!(window.supabase&&window.supabase.createClient)?'ספריה לא נטענה':cfg?(SYNC.ok?'חי ✓':'מתחבר…'):'כבוי'}</b></div>
+    ${SYNC.lastErr?`<div class="kv"><span class="muted">שגיאת סנכרון</span><b class="down" style="direction:ltr;font-size:11px">${escapeHtml(String(SYNC.lastErr).slice(0,80))}</b></div>`:''}
     <div class="grid2" style="margin-top:12px"><button class="btn sec" onclick="syncTest()">🔎 בדיקת סנכרון</button><button class="btn sec" onclick="exportData()">גיבוי JSON</button></div>
   </div>
-  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · עובד גם בלי אינטרנט · מסונכרן לכל החבר'ה.<br>עריכת סגל השחקנים נעשית ע"י המנהל בלבד.</div>`;
+  <div class="center muted small" style="margin:16px 0 4px">ליגת פיפ״א · ${APP_VERSION}<br>עריכת סגל השחקנים נעשית ע"י המנהל בלבד.</div>`;
 }
 
 /* ============================================================
@@ -809,18 +830,32 @@ function pullRemote(seed){
 }
 function startPolling(){stopPolling();SYNC.poll=setInterval(()=>pullRemote(false),4000);}
 function stopPolling(){if(SYNC.poll){clearInterval(SYNC.poll);SYNC.poll=null;}}
+function classifyErr(e){const s=(e&&(e.message||e.code)||String(e)||'');if(/Failed to fetch|NetworkError|fetch|ERR_|CORS|network/i.test(s))return 'network';if(/row-level security|permission|not authoriz|RLS|policy|401|403/i.test(s))return 'rls';if(/does not exist|schema cache|Could not find the table|relation/i.test(s))return 'notable';return 'other';}
 async function syncTest(){
   const cfg=getCfg();
-  if(!cfg||!SYNC.client){openSheet('<b>בדיקת סנכרון</b><p class="small muted">הסנכרון לא מאותחל.</p>');return;}
+  const isFile=(typeof location!=='undefined'&&location.protocol==='file:');
+  const showSrc='מקור: '+(typeof location!=='undefined'?location.protocol+'//'+(location.host||'(קובץ מקומי)'):'');
+  if(!(window.supabase&&window.supabase.createClient)){openSheet('<b>בדיקת סנכרון</b><p class="small muted">ספריית הסנכרון לא נטענה (jsdelivr חסום ברשת?).<br>'+escapeHtml(showSrc)+'</p><button class="btn sec" style="margin-top:10px" onclick="closeSheet()">סגור</button>');return;}
+  if(!cfg||!SYNC.client){openSheet('<b>בדיקת סנכרון</b><p class="small muted">הסנכרון לא מאותחל.</p><button class="btn sec" style="margin-top:10px" onclick="closeSheet()">סגור</button>');return;}
   openSheet('<b>בדיקת סנכרון</b><p class="small muted">בודק כתיבה וקריאה מול Supabase…</p>');
   let msg='';
   try{
     const wr=await SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()});
-    const rd=await SYNC.client.from('fifa_rooms').select('room,updated_at').eq('room',cfg.room).maybeSingle();
-    if(wr.error)msg='❌ כתיבה נכשלה:\n'+(wr.error.message||wr.error.code||JSON.stringify(wr.error))+'\n\nסביר שחסרה הרשאת RLS. הריצו מחדש את ה-SQL.';
-    else if(rd.error)msg='❌ קריאה נכשלה:\n'+(rd.error.message||rd.error.code||JSON.stringify(rd.error));
-    else msg='✅ תקין! כתיבה וקריאה עובדות.\nחדר: '+cfg.room+'\nעודכן: '+((rd.data&&rd.data.updated_at)||'—')+'\n\nאם בכל זאת לא מסתנכרן — ודאו שכולם על אותו קוד חדר ("'+cfg.room+'").';
-  }catch(e){msg='❌ שגיאה:\n'+String(e&&e.message||e);}
+    if(wr.error){
+      const t=classifyErr(wr.error);const raw=wr.error.message||wr.error.code||JSON.stringify(wr.error);
+      if(t==='network')msg='❌ כתיבה נכשלה — בעיית רשת:\n'+raw+'\n\nהסיבות הנפוצות:\n1. פתחת מקובץ מקומי (file://) במקום מהקישור של GitHub — Supabase חוסם בקשות מ-file. פתח את כתובת ה-github.io.\n2. הפרויקט ב-Supabase מושהה (Paused) — היכנס ל-dashboard ולחץ Restore/Resume.\n3. חוסם פרסומות/רשת חוסמים את supabase.co.';
+      else if(t==='rls')msg='❌ כתיבה נכשלה — הרשאות RLS:\n'+raw+'\n\nהרץ מחדש את ה-SQL של ה-policy.';
+      else if(t==='notable')msg='❌ הטבלה fifa_rooms לא נמצאה:\n'+raw+'\n\nהרץ את ה-SQL שיוצר את הטבלה.';
+      else msg='❌ כתיבה נכשלה:\n'+raw;
+    }else{
+      const rd=await SYNC.client.from('fifa_rooms').select('room,updated_at').eq('room',cfg.room).maybeSingle();
+      if(rd.error)msg='⚠️ כתיבה עבדה אך קריאה נכשלה:\n'+(rd.error.message||JSON.stringify(rd.error));
+      else msg='✅ תקין! כתיבה וקריאה עובדות.\nחדר: '+cfg.room+'\n'+showSrc+'\n\nאם עדיין לא מסתנכרן — ודא שכולם פותחים את אותו קישור github.io ואותו קוד חדר.';
+    }
+  }catch(e){
+    const t=classifyErr(e);
+    msg=(t==='network'?'❌ בעיית רשת:\n':'❌ שגיאה:\n')+String(e&&e.message||e)+(isFile?'\n\n⚠️ פתחת מקובץ מקומי (file://) — זה חוסם את Supabase. פתח מכתובת ה-github.io.':'');
+  }
   openSheet('<b>בדיקת סנכרון</b><pre class="small" style="direction:ltr;text-align:left;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px">'+escapeHtml(msg)+'</pre><button class="btn sec" style="margin-top:10px" onclick="closeSheet()">סגור</button>');
 }
 function mergeRemote(remote){
@@ -831,19 +866,26 @@ function mergeRemote(remote){
   const del=Array.from(new Set([...(state.deleted||[]),...rd]));
   state.players=Object.values(pmap);state.matches=Object.values(mmap);state.deleted=del;
   if(remote.control&&(remote.control.updatedAt||0)>((state.control&&state.control.updatedAt)||0))state.control=remote.control;
+  const deduped=dedupePlayers();
   persist();
   const after=JSON.stringify(state);
   if(after!==before){SYNC.applyingRemote=true;render();SYNC.applyingRemote=false;}
-  if((rp.length!==state.players.length)||(rm.length!==state.matches.length)||(rd.length!==del.length))pushState();
+  if(deduped||(rp.length!==state.players.length)||(rm.length!==state.matches.length)||(rd.length!==del.length))pushState();
 }
 function pushState(){if(!SYNC.client)return;const cfg=getCfg();if(!cfg)return;try{SYNC.client.from('fifa_rooms').upsert({room:cfg.room,data:{players:state.players,matches:state.matches,deleted:state.deleted,control:state.control},updated_at:new Date().toISOString()}).then(({error})=>{if(error){SYNC.ok=false;SYNC.lastErr=error.message||error.code||JSON.stringify(error);updateSyncDot();}else{SYNC.lastErr=null;}});}catch(e){SYNC.lastErr=String(e&&e.message||e);}}
 function syncPush(){if(SYNC.applyingRemote)return;if(SYNC.client)pushState();}
-function updateSyncDot(){const d=document.getElementById('syncDot');if(!d)return;const cfg=getCfg();d.className='syncdot'+(cfg?(SYNC.ok?' on':' err'):'');d.title=cfg?(SYNC.ok?'סנכרון חי':'סנכרון מתחבר'):'סנכרון כבוי';}
+function updateSyncDot(){
+  const cfg=getCfg();const d=document.getElementById('syncDot');
+  if(d){d.className='syncdot'+(cfg?(SYNC.ok?' on':' err'):'');d.title=cfg?(SYNC.ok?'סנכרון חי':'סנכרון מתחבר'):'סנכרון כבוי';}
+  const key=(SYNC.ok?'1':'0')+'|'+(SYNC.lastErr||'');
+  if(key!==SYNC._uiKey){SYNC._uiKey=key;if(!SYNC.applyingRemote&&(ui.tab==='more'||ui.tab==='play')){const v=document.getElementById('view');if(v)v.innerHTML=(ui.tab==='more'?viewMore():viewPlay());}}
+}
 
 /* ============================================================
    הפעלה
 ============================================================ */
 load();
+if(dedupePlayers())persist();
 if(syncIsEmbedded()&&!getCfg()){setCfg({url:EMBEDDED_SYNC.url,anon:EMBEDDED_SYNC.anon,room:EMBEDDED_SYNC.room||'main'});}
 render();
 if(getCfg())initSync(false);
